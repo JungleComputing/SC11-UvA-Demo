@@ -2,7 +2,8 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="lib" path="lib/constellation-0.7.0.jar"/>
-	<classpathentry kind="lib" path="lib/ibis-util-2.2.jar"/>
+	<classpathentry kind="lib" path="external/IPL-2.2/ibis-util-2.2.jar"/>
+	<classpathentry kind="lib" path="external/Constellation-0.7/constellation-0.7.0.jar"/>
+	<classpathentry kind="lib" path="external/JavaGAT-2.1.1/lib/GAT-API.jar"/>
 	<classpathentry kind="output" path="build-eclipse"/>
 </classpath>

@@ -10,11 +10,8 @@
 	<property name="distdir" value="./lib" />
 
 	<path id="default.classpath">
-		<fileset dir="external">
-			<include name="*.jar" />
-		</fileset>
 		<fileset dir="lib">
-			<include name="*.jar" />
+			<include name="**/*.jar" />
 		</fileset>
 	</path>
 
@@ -37,11 +34,21 @@
 	        <mkdir dir="lib" />
         	<!-- Copy external libraries to lib directory -->
 	        <copy todir="lib">
-		        <fileset dir="external" excludes="log4jME*.jar" />
+		        <fileset dir="external/IPL-2.2">
+	                  <include name="*.jar"/>	
+                        </fileset>
+		        <fileset dir="external/Constellation-0.7">
+	                  <include name="*.jar"/>	
+                        </fileset>
+		        <fileset dir="external/JavaGAT-2.1.1/lib">
+	                  <include name="*.jar"/>	
+                        </fileset>
+
+
 		</copy>
 	</target>
 
-	<target name="build" depends="clean,compile,copy-external">
+	<target name="build" depends="clean,copy-external,compile">
 	</target>
 
 	<target name="src.zip" depends="build">

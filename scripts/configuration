@@ -1,5 +1,5 @@
 OP1 echo.sh slave
-OP2 echo.sh gpu
-OP3 echo.sh slave gpu
+OP2 echo.sh slave
+OP3 echo.sh slave
 
  

@@ -11,14 +11,14 @@ public class Sequence extends Activity {
     private static final long serialVersionUID = 4880988228971533182L;
 
     private final ActivityIdentifier parent;
-    
+
     private final Script [] sequence;
     private final Result [] results;
 
     private int index = 0;
 
     public Sequence(ActivityIdentifier parent, Script [] sequence) {
-        super(UnitActivityContext.DEFAULT, true);
+        super(new UnitActivityContext("slave"), true);
 
         if (sequence == null || sequence.length == 0) {
             throw new IllegalArgumentException("Illegal sequence");
@@ -44,16 +44,21 @@ public class Sequence extends Activity {
         executor.submit(new Job(sequence[0], identifier()));
         suspend();
     }
-    
+
     @Override
     public void process(Event e) throws Exception {
         results[index] = (Result) e.data;
 
         if (!results[index].success() || index == sequence.length-1) {
+
+            System.out.println("Sequence done!");
+
             executor.send(new Event(identifier(), parent, Result.merge(results)));
             finish();
         } else {
-            executor.submit(new Job(sequence[++index], identifier()));
+            index++;
+            System.out.println("Sequence submitting " + (index+1));
+            executor.submit(new Job(sequence[index], identifier()));
             suspend();
         }
     }
