@@ -12,8 +12,8 @@ public class Copy extends SimpleActivity {
     private final File in;
     private final File out;
 
-    public Copy(ActivityIdentifier parent, File in, File out) {
-        super(parent, new UnitActivityContext("master"), true);
+    public Copy(ActivityIdentifier parent, long id, File in, File out) {
+        super(parent, new UnitActivityContext("master", id), true);
 
         this.in = in;
         this.out = out;
@@ -28,9 +28,9 @@ public class Copy extends SimpleActivity {
 
         try {
             in.copy(out.toGATURI());
-            r.success();
+            r.success("File copied: " + in + " -> " + out);
         } catch (Exception e) {
-            r.failed(e.getMessage());
+            r.failed("Copy failed: " + in + " -> " + out + "\n" + e.getMessage());
         }
 
         return r;

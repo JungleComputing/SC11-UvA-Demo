@@ -17,8 +17,8 @@ public class Sequence extends Activity {
 
     private int index = 0;
 
-    public Sequence(ActivityIdentifier parent, Script [] sequence) {
-        super(new UnitActivityContext("slave"), true);
+    public Sequence(ActivityIdentifier parent, long id, Script [] sequence) {
+        super(new UnitActivityContext("slave", id), true);
 
         if (sequence == null || sequence.length == 0) {
             throw new IllegalArgumentException("Illegal sequence");
@@ -41,7 +41,7 @@ public class Sequence extends Activity {
 
     @Override
     public void initialize() throws Exception {
-        executor.submit(new Job(sequence[0], identifier()));
+        executor.submit(new Job(identifier(), sequence[0]));
         suspend();
     }
 
@@ -58,7 +58,7 @@ public class Sequence extends Activity {
         } else {
             index++;
             System.out.println("Sequence submitting " + (index+1));
-            executor.submit(new Job(sequence[index], identifier()));
+            executor.submit(new Job(identifier(), sequence[index]));
             suspend();
         }
     }

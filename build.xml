@@ -41,9 +41,8 @@
 	                  <include name="*.jar"/>	
                         </fileset>
 		        <fileset dir="external/JavaGAT-2.1.1/lib">
-	                  <include name="*.jar"/>	
+	                  <include name="**/*.jar"/>	
                         </fileset>
-
 
 		</copy>
 	</target>

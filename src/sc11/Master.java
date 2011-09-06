@@ -98,7 +98,8 @@ public class Master {
             terminated.put(o.getID(), o);
         }
 
-        System.out.println("Operation " + o.getID() + " terminated: " + o.getResult());
+        System.out.println("Operation " + o.getID() + " terminated:\n" +
+        		o.getResult().getOuput());
     }
 
     public Result info(long id) throws Exception {
@@ -121,12 +122,21 @@ public class Master {
         return o.getResult();
     }
 
-    public long exec(String in, String [] ops, String out) throws Exception {
+    public long exec(String in, String filetype, String [] ops, String out) 
+    		throws Exception {
 
-        if (in == null || out == null) {
-            throw new Exception("Missing in/out file!");
+        if (in == null || in.length() == 0) {
+            throw new Exception("Missing input file/directory!");
         }
 
+        if (out == null || out.length() == 0) {
+            throw new Exception("Missing output directory!");
+        }
+        
+        if (filetype == null || filetype.length() == 0) {
+            throw new Exception("Missing file type!");
+        }
+        
         long id = getID();
 
         ScriptDescription [] scripts = null;
@@ -145,7 +155,7 @@ public class Master {
             }
         }
 
-        BulkOperation o = new BulkOperation(this, id, in, scripts, out);
+        BulkOperation o = new BulkOperation(this, id, in, filetype, scripts, out);
 
         //Operation o = new Operation(this, id, in, scripts, out);
 

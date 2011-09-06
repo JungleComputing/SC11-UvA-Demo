@@ -23,7 +23,8 @@ public class Stub {
 		out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 	}
 	
-	public long exec(String input, String [] operations, String output) throws IOException {
+	public long exec(String input, String filetype, String [] operations, 
+			String output) throws IOException {
 		
 		if (operations == null) { 
 			operations = new String[0];
@@ -31,6 +32,7 @@ public class Stub {
 		
 		out.write(Protocol.OPCODE_EXEC);
 		out.writeUTF(input);
+		out.writeUTF(filetype);
 		out.writeUTF(output);
 			
 		out.writeInt(operations.length);

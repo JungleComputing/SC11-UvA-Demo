@@ -13,7 +13,8 @@ public class Client {
 
         String input = null;
         String output = null;
-
+        String filetype = null;
+        
         ArrayList<String> filters = new ArrayList<String>();
 
         for (int i=0;i<args.length;i++) {
@@ -22,6 +23,8 @@ public class Client {
                 input = args[++i];
             } else if (args[i].equals("--output")) {
                 output = args[++i];
+            } else if (args[i].equals("--filetype")) {
+                filetype = args[++i];
             } else if (args[i].equals("--filter")) {
                 filters.add(args[++i]);
             } else if (args[i].equals("--server")) {
@@ -44,6 +47,11 @@ public class Client {
             System.exit(1);
         }
 
+        if (filetype == null) {
+            System.err.println("File type not set!");
+            System.exit(1);
+        }
+        
         if (host == null) {
             System.err.println("Host not set!");
             System.exit(1);
@@ -58,7 +66,7 @@ public class Client {
             String [] operations = filters.toArray(new String[filters.size()]);
 
             Stub s = new Stub(host, port);
-            long id = s.exec(input, operations, output);
+            long id = s.exec(input, filetype, operations, output);
 
             String result = null;
 

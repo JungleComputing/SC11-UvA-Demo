@@ -27,7 +27,7 @@ public class Result implements Serializable {
         finished = true;
         state = "ERROR";
         this.output = output;
-        this.error = output;
+        this.error = error;
 
         return this;
     }
@@ -41,7 +41,7 @@ public class Result implements Serializable {
         success = true;
         state = "DONE";
         this.output = output;
-        this.error = output;
+        this.error = error;
 
         return this;
     }

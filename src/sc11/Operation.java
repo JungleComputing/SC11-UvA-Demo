@@ -64,7 +64,7 @@ public class Operation extends Activity {
             ops = new Script[sd.length];
 
             for (int i=0;i<sd.length;i++) {
-                ops[i] = sd[i].createScript(tmp[i], tmp[i+1]);
+                ops[i] = sd[i].createScript(tmp[i], tmp[i+1], id);
             }
         }
     }
@@ -83,9 +83,6 @@ public class Operation extends Activity {
         executor.send(new Event(identifier(), parent, Result.merge(results)));
     }
 
-    private void error(String message) {
-         }
-
     @Override
     public void initialize() throws Exception {
 
@@ -93,10 +90,13 @@ public class Operation extends Activity {
 
         state = STATE_COPY_IN;
 
-        System.out.println("Operation " + id + " submitting COPY_IN");
-
-        executor.submit(new Copy(identifier(), in, GAT.createFile("file://" +
-                LocalConfig.get().tmpdir + File.separator + firstTmp)));
+        File tmp = GAT.createFile("file:///" + LocalConfig.get().tmpdir + 
+        		File.separator + firstTmp);
+        
+        System.out.println("Operation " + id + " submitting COPY_IN " + in + 
+        		" -> " + tmp);
+        
+        executor.submit(new Copy(identifier(), id, in, tmp));
 
         suspend();
     }
@@ -118,11 +118,12 @@ public class Operation extends Activity {
                 System.out.println("Operation " + id + " submitting SEQUENCE");
 
                 state = STATE_FILTER;
-                executor.submit(new Sequence(identifier(), ops));
+                executor.submit(new Sequence(identifier(), id, ops));
                 suspend();
             } else {
                 state = STATE_ERROR;
-                System.out.println("Operation " + id + " FAILED: Failed to copy input file!");
+                System.out.println("Operation " + id + 
+                     " FAILED: Failed to copy input file!\n" + res.getError());
                 finish();
             }
             break;
@@ -132,19 +133,22 @@ public class Operation extends Activity {
             results[1] = res;
 
             if (res.success()) {
-
-                System.out.println("Operation " + id + " submitting COPY_OUT");
-
+                
                 state = STATE_COPY_OUT;
 
-                executor.submit(new Copy(identifier(),
-                        GAT.createFile("file://" + LocalConfig.get().tmpdir +
-                                File.separator + lastTmp), out));
+                File tmp = GAT.createFile("file:///" + 
+                		LocalConfig.get().tmpdir + File.separator + lastTmp);
+                
+                System.out.println("Operation " + id + " submitting COPY_OUT " 
+                		+ tmp + " -> " + out);
+                
+                executor.submit(new Copy(identifier(), id, tmp, out));
 
                 suspend();
             } else {
                 state = STATE_ERROR;
-                System.out.println("Operation " + id + " FAILED: Failed to execute filter!");
+                System.out.println("Operation " + id + 
+                	   " FAILED: Failed to execute filter!\n" + res.getError());
                 finish();
             }
             break;
@@ -161,14 +165,16 @@ public class Operation extends Activity {
                 finish();
             } else {
                 state = STATE_ERROR;
-                System.out.println("Operation " + id + " FAILED: Failed to copy output file!");
+                System.out.println("Operation " + id + 
+                     " FAILED: Failed to copy output file!\n" + res.getError());
                 finish();
             }
             break;
 
         default:
             state = STATE_ERROR;
-            System.out.println("Operation " + id + " FAILED: Operation in illegal state! " + state);
+            System.out.println("Operation " + id + 
+            		" FAILED: Operation in illegal state! " + state);
             finish();
         }
     }

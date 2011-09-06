@@ -11,7 +11,7 @@ public class Job extends SimpleActivity {
 
     private final Script script;
 
-    public Job(Script script, ActivityIdentifier parent) {
+    public Job(ActivityIdentifier parent, Script script) {
         super(parent, script.context, true);
         this.script = script;
 

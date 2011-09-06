@@ -10,9 +10,8 @@ public class ScriptDescription {
 
     public final String operation;
     public final String script;
-
-    public final ActivityContext context;
-
+    public final String [] tags;
+   
     public static ScriptDescription parseScriptDescription(String line)
             throws Exception {
 
@@ -25,32 +24,39 @@ public class ScriptDescription {
         String op = tok.nextToken();
         String script = tok.nextToken();
 
-        ActivityContext context = null;
-
         int c = tok.countTokens();
 
-        if (c == 1) {
-            context = new UnitActivityContext(tok.nextToken());
-        } else {
-            UnitActivityContext [] cs = new UnitActivityContext[c];
-
-            for (int i=0;i<c;i++) {
-                cs[i] = new UnitActivityContext(tok.nextToken());
-            }
-
-            context = new OrActivityContext(cs, true);
+        String [] tags = new String[c];
+        
+        for (int i=0;i<c;i++) { 
+        	tags[i] = tok.nextToken();
         }
-
-        return new ScriptDescription(op, script, context);
+        
+        return new ScriptDescription(op, tags, script);
     }
 
-    public ScriptDescription(String op, String script, ActivityContext c) {
+    public ScriptDescription(String op, String [] tags, String script) {
         this.operation = op;
+        this.tags = tags;
         this.script = script;
-        this.context = c;
     }
 
-    public Script createScript(String input, String output) {
+    public Script createScript(String input, String output, long id) {
+    	
+    	ActivityContext context = null;
+    	
+    	if (tags.length == 1) { 
+    		context = new UnitActivityContext(tags[0], id);
+    	} else { 
+    		UnitActivityContext [] c = new UnitActivityContext[tags.length];
+    		
+    		for (int i=0;i<tags.length;i++) { 
+    			c[i] = new UnitActivityContext(tags[i], id);
+    		}
+    
+    		context = new OrActivityContext(c);
+    	}
+    	
         return new Script(script, input, output, context);
     }
 }

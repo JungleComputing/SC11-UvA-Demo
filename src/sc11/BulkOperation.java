@@ -1,6 +1,7 @@
 package sc11;
 
 import org.gridlab.gat.GAT;
+import org.gridlab.gat.GATObjectCreationException;
 import org.gridlab.gat.io.File;
 
 import ibis.constellation.Activity;
@@ -16,6 +17,7 @@ public class BulkOperation extends Activity {
     private final long id;
 
     private final String in;
+    private final String filetype;
     private final String out;
 
     private final ScriptDescription [] sd;
@@ -25,7 +27,7 @@ public class BulkOperation extends Activity {
     private Result error;
     private boolean done;
 
-    public BulkOperation(Master parent, long id, String in,
+    public BulkOperation(Master parent, long id, String in, String filetype, 
             ScriptDescription [] sd, String out) {
 
         super(new UnitActivityContext("master", id), true, true);
@@ -33,6 +35,7 @@ public class BulkOperation extends Activity {
         this.parent = parent;
         this.id = id;
         this.in = in;
+        this.filetype = filetype;
         this.out = out;
         this.sd = sd;
     }
@@ -73,6 +76,11 @@ public class BulkOperation extends Activity {
         done = true;
     }
 
+    private File createOutputFile(File in, File outdir) 
+    		throws GATObjectCreationException { 
+    	return GAT.createFile(outdir.toGATURI() + "/" + in.getName());
+    }
+    
     @Override
     public void initialize() throws Exception {
 
@@ -80,7 +88,7 @@ public class BulkOperation extends Activity {
             // Check if input exists
             File input = GAT.createFile(in);
 
-            if (!(input.exists() && input.canRead())) {
+            if (!input.exists() || !input.canRead()) {
                 error("Cannot read input: " + in);
                 finish();
                 return;
@@ -89,12 +97,14 @@ public class BulkOperation extends Activity {
             // Check if output exists
             File output = GAT.createFile(out);
 
-            if (!(output.exists() && output.canWrite())) {
-                error("Cannot write output: " + out);
+            if (!output.exists() || !output.isDirectory() || !output.canWrite()) {
+                error("Cannot write to output directory: " + out);
                 finish();
                 return;
             }
-
+            
+            int submissions = 0;
+            
             if (input.isDirectory()) {
 
                 if (output.isFile()) {
@@ -111,19 +121,41 @@ public class BulkOperation extends Activity {
                     return;
                 }
 
-                results = new Result[tmp.length];
-
                 for (int i=0;i<tmp.length;i++) {
-                    executor.submit(new Operation(identifier(),
-                            (id << 8) | i, tmp[i], sd, output));
+                	
+                	if (!tmp[i].getName().endsWith(filetype)) { 
+                		System.out.println("Skipping (wrong name): " + tmp[i]);
+                    } else if (!tmp[i].isFile()) { 
+                		System.out.println("Skipping (directory): " + tmp[i]);
+                	} else if (!tmp[i].canRead()) { 
+                		System.out.println("Skipping (unreadable): " + tmp[i]);
+                	} else { 
+                		submissions++;
+                		executor.submit(new Operation(identifier(),
+                				(id << 8) | i, tmp[i], sd, 
+                				createOutputFile(tmp[i], output)));
+                	}
                 }
             } else {
-                results = new Result[1];
-                executor.submit(new Operation(identifier(),
-                        (id << 8), input, sd, output));
+             	if (!input.getName().endsWith(filetype)) { 
+            		System.out.println("Skipping (wrong name): " + input);
+                } else if (!input.isFile()) { 
+            		System.out.println("Skipping (directory): " + input);
+            	} else if (!input.canRead()) { 
+            		System.out.println("Skipping (unreadable): " + input);
+            	} else { 
+            		submissions++;
+            		executor.submit(new Operation(identifier(), (id << 8), 
+            				input, sd, createOutputFile(input, output)));
+            	}
             }
 
-            suspend();
+            if (submissions > 0) { 
+        		results = new Result[submissions];
+                suspend();
+            } else { 
+            	finish();
+            }
 
         } catch (Exception e) {
             error("Unexpected error: " + e.getMessage());

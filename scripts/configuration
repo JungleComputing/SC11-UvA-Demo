@@ -1,5 +1,5 @@
-OP1 echo.sh slave
-OP2 echo.sh slave
-OP3 echo.sh slave
+OP1 scale.sh slave
+OP2 blur.sh slave
+OP3 rotate.sh slave
 
  

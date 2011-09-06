@@ -34,6 +34,7 @@ public class MasterProxy extends Thread {
 		private void handleExec() throws IOException {
 		
 			String input = in.readUTF();
+			String filetype = in.readUTF();
 			String output = in.readUTF();
 
 			int count = in.readInt();
@@ -48,7 +49,7 @@ public class MasterProxy extends Thread {
 			Exception ex = null;
 			
 			try { 
-				id = exec(input, operations, output);
+				id = exec(input, filetype, operations, output);
 			} catch (Exception e) {
 				ex = e;
 			}
@@ -163,8 +164,9 @@ public class MasterProxy extends Thread {
 		ss = new ServerSocket(port);
 	}
 
-	public synchronized long exec(String input, String [] operations, String output) throws Exception {
-		return master.exec(input, operations, output);
+	public synchronized long exec(String input, String filetype, 
+			String [] operations, String output) throws Exception {
+		return master.exec(input, filetype, operations, output);
 	}
 	
 	public synchronized Result info(long id) throws Exception {
