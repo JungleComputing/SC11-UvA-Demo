@@ -1,4 +1,4 @@
-package sc11;
+package sc11.processing;
 
 import org.gridlab.gat.GAT;
 import org.gridlab.gat.io.File;

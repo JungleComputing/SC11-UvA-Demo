@@ -9,8 +9,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
-import sc11.Master;
-import sc11.Result;
+import sc11.processing.Master;
+import sc11.processing.Result;
 
 public class MasterProxy extends Thread {
 

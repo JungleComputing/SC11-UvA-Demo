@@ -1,4 +1,4 @@
-package sc11;
+package sc11.client;
 
 import java.util.ArrayList;
 

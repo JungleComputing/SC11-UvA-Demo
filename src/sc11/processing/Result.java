@@ -1,4 +1,4 @@
-package sc11;
+package sc11.processing;
 
 import java.io.Serializable;
 
