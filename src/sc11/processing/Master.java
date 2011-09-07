@@ -13,7 +13,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.HashMap;
 
-import sc11.daemon.MasterProxy;
+//import sc11.daemon.Proxy;
 
 public class Master {
 
@@ -99,7 +99,7 @@ public class Master {
         }
 
         System.out.println("Operation " + o.getID() + " terminated:\n" +
-        		o.getResult().getOuput());
+                o.getResult().getOuput());
     }
 
     public Result info(long id) throws Exception {
@@ -122,8 +122,8 @@ public class Master {
         return o.getResult();
     }
 
-    public long exec(String in, String filetype, String [] ops, String out) 
-    		throws Exception {
+    public long exec(String in, String filetype, String [] ops, String out)
+            throws Exception {
 
         if (in == null || in.length() == 0) {
             throw new Exception("Missing input file/directory!");
@@ -132,11 +132,11 @@ public class Master {
         if (out == null || out.length() == 0) {
             throw new Exception("Missing output directory!");
         }
-        
+
         if (filetype == null || filetype.length() == 0) {
             throw new Exception("Missing file type!");
         }
-        
+
         long id = getID();
 
         ScriptDescription [] scripts = null;
@@ -196,6 +196,7 @@ public class Master {
     }
 
     public synchronized void waitUntilDone() {
+
         while (!done) {
             try {
                 wait();
@@ -261,8 +262,10 @@ public class Master {
 
             Master m = new Master(executorCount, config);
 
-            MasterProxy p = new MasterProxy(m, port);
+            /*
+            Proxy p = new Proxy(m, port);
             p.start();
+            */
             m.waitUntilDone();
 
         } catch (Exception e) {

@@ -1,5 +1,5 @@
 #!/bin/sh
 
-ROOT=/home/jason/workspace/SC11-UvA-Demo
+ROOT=/home/jason/Workspace/SC11-UvA-Demo
 
-java -cp "./lib/*" sc11.Client --input $ROOT/images --filetype .jpg --output $ROOT/output --filter OP1 --filter OP2 --filter OP3 --server localhost
+java -cp "./lib-daemon/*" sc11.daemon.Client --input $ROOT/images --filetype .jpg --output $ROOT/output --filter OP1 --filter OP2 --filter OP3 --daemon localhost --site carrot --nodes 2

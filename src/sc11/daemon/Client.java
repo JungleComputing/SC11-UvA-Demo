@@ -7,13 +7,16 @@ public class Client {
 
     public static void main(String [] args) {
 
-        String host = null;
-        int port = 45678;
+        String daemon = null;
+        int port = 54672;
 
         String input = null;
         String output = null;
         String filetype = null;
-        
+
+        String site = null;
+        int nodes = 0;
+
         ArrayList<String> filters = new ArrayList<String>();
 
         for (int i=0;i<args.length;i++) {
@@ -26,8 +29,12 @@ public class Client {
                 filetype = args[++i];
             } else if (args[i].equals("--filter")) {
                 filters.add(args[++i]);
-            } else if (args[i].equals("--server")) {
-                host = args[++i];
+            } else if (args[i].equals("--daemon")) {
+                daemon = args[++i];
+            } else if (args[i].equals("--site")) {
+                site = args[++i];
+            } else if (args[i].equals("--nodes")) {
+                nodes = Integer.parseInt(args[++i]);
             } else if (args[i].equals("--port")) {
                 port = Integer.parseInt(args[++i]);
             } else {
@@ -50,9 +57,14 @@ public class Client {
             System.err.println("File type not set!");
             System.exit(1);
         }
-        
-        if (host == null) {
+
+        if (daemon == null) {
             System.err.println("Host not set!");
+            System.exit(1);
+        }
+
+        if (nodes < 0) {
+            System.err.println("Illegal node count: " + nodes);
             System.exit(1);
         }
 
@@ -64,8 +76,10 @@ public class Client {
         try {
             String [] operations = filters.toArray(new String[filters.size()]);
 
-            Stub s = new Stub(host, port);
-            long id = s.exec(input, filetype, operations, output);
+            Job job = new Job(input, filetype, output, operations, site, nodes);
+
+            Stub s = new Stub(daemon, port);
+            long id = s.exec(job);
 
             String result = null;
 

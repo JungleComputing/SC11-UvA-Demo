@@ -10,96 +10,82 @@ import java.net.UnknownHostException;
 
 public class Stub {
 
-	private Socket s; 
-	
-	private DataInputStream in; 
-	private DataOutputStream out; 
-	
-	public Stub(String host, int port) throws UnknownHostException, IOException { 
-		
-		s = new Socket(host, port);
-		
-		in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
-		out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
-	}
-	
-	public long exec(String input, String filetype, String [] operations, 
-			String output) throws IOException {
-		
-		if (operations == null) { 
-			operations = new String[0];
-		}
-		
-		out.write(Protocol.OPCODE_EXEC);
-		out.writeUTF(input);
-		out.writeUTF(filetype);
-		out.writeUTF(output);
-			
-		out.writeInt(operations.length);
-			
-		for (int i=0;i<operations.length;i++) { 
-			out.writeUTF(operations[i]);
-		}
-		
-		out.flush();
-		
-		// TODO: may return -1 on EOS
-		int opcode = in.read();
+    private Socket s;
 
-		switch (opcode) { 
-		case Protocol.OPCODE_ACCEPT:
-			return in.readLong();
-		case Protocol.OPCODE_ERROR:
-			throw new IOException(in.readUTF());
-		default:
-			throw new IOException("Unexpected reply! " + opcode);
-		}
-	}	
-	
-	public String info(long id) throws IOException {
+    private DataInputStream in;
+    private DataOutputStream out;
 
-		out.write(Protocol.OPCODE_INFO);
-		out.writeLong(id);
-		out.flush();
-		
-		// TODO: may return -1 on EOS
-		int opcode = in.read();
+    public Stub(String host, int port) throws UnknownHostException, IOException {
 
-		switch (opcode) {
-		case -1: 
-			throw new IOException("Connection lost!");
-		case Protocol.OPCODE_RUNNING:
-			System.out.println("Current state: " + in.readUTF());
-			return null;
-		case Protocol.OPCODE_DONE:
-			return in.readUTF();
-		case Protocol.OPCODE_ERROR:
-			throw new IOException(in.readUTF());
-		default:
-			throw new IOException("Unexpected reply! " + opcode);
-		}
-	}
+        s = new Socket(host, port);
 
-	public void close() {
-	
-		try { 
-			out.write(Protocol.OPCODE_GOODBYE);
-			out.flush();
-			out.close();
-		} catch (Exception e) {
-			// ignored
-		}
-		
-		try { 
-			in.close();
-		} catch (Exception e) {
-			// ignored
-		}
-		
-		try { 
-			s.close();
-		} catch (Exception e) {
-			// ignored
-		}
-	}
+        in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+        out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+    }
+
+    public long exec(Job job) throws IOException {
+
+        out.write(Protocol.OPCODE_EXEC);
+        Job.write(job, out);
+        out.flush();
+
+        // TODO: may return -1 on EOS
+        int opcode = in.read();
+
+        switch (opcode) {
+        case Protocol.OPCODE_ACCEPT:
+            return in.readLong();
+        case Protocol.OPCODE_ERROR:
+            throw new IOException(in.readUTF());
+        default:
+            throw new IOException("Unexpected reply! " + opcode);
+        }
+    }
+
+    public String info(long id) throws IOException {
+
+        out.write(Protocol.OPCODE_INFO);
+        out.writeLong(id);
+        out.flush();
+
+        // TODO: may return -1 on EOS
+        int opcode = in.read();
+
+        switch (opcode) {
+        case -1:
+            throw new IOException("Connection lost!");
+        case Protocol.OPCODE_RUNNING:
+            System.out.println("Current state: " + in.readUTF());
+            return null;
+        case Protocol.OPCODE_DONE:
+            return in.readUTF();
+        case Protocol.OPCODE_ERROR:
+            throw new IOException(in.readUTF());
+        default:
+            throw new IOException("Unexpected reply! " + opcode);
+        }
+    }
+
+    public void close() {
+
+        try {
+            out.write(Protocol.OPCODE_GOODBYE);
+            out.flush();
+            out.close();
+        } catch (Exception e) {
+            // ignored
+        }
+
+        try {
+            in.close();
+        } catch (Exception e) {
+            // ignored
+        }
+
+        try {
+            s.close();
+        } catch (Exception e) {
+            // ignored
+        }
+    }
 }
