@@ -1,4 +1,4 @@
-package sc11.proxy;
+package sc11.daemon;
 
 public interface Protocol {
 

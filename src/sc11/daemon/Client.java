@@ -1,8 +1,7 @@
-package sc11.client;
+package sc11.daemon;
 
 import java.util.ArrayList;
 
-import sc11.proxy.Stub;
 
 public class Client {
 

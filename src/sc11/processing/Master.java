@@ -13,7 +13,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.HashMap;
 
-import sc11.proxy.MasterProxy;
+import sc11.daemon.MasterProxy;
 
 public class Master {
 
