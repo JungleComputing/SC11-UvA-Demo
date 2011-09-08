@@ -46,8 +46,8 @@ public class Daemon {
 
         Workspace workspace = new Workspace(grid, applications, experiment);
 
-        deploy = new Deploy(new File("deploy"), verbose, false, 0, null, null,
-                true);
+        deploy = new Deploy(new File("deploy-workspace"), verbose, false, 0, 
+        		null, null, true);
 
         /*
         if (useGui) {
@@ -127,7 +127,7 @@ public class Daemon {
             a.setSystemProperty("sc11.config", config);
             a.setSystemProperty("sc11.scriptdir", scriptDir);
             a.setSystemProperty("sc11.tmpdir", tmpDir);
-
+            
             // application.setSystemProperty("ibis.managementclient", "false");
             // application.setSystemProperty("ibis.bytescount", "");
 
@@ -143,7 +143,7 @@ public class Daemon {
         j.setRuntime(60);
         j.getApplication().setName("SC11");
         j.setPoolName("SC11-" + id);
-
+        
         // make sure there is an output file on the other side (hack!)
         //        jobDescription.getApplication().setInputFiles(new File("output"));
 

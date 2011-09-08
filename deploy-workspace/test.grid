@@ -37,10 +37,24 @@ carrot.job.adaptor = SshTrilead
 carrot.job.uri = ssh://carrot2.cs.vu.nl
 carrot.file.adaptors = SftpTrilead, SshTrilead, Local
 carrot.java.path = /home/jason/JVMs/jdk1.6.0_23/bin/java
-carrot.wrapper.script = carrot.script
+carrot.job.wrapper.script = multicore.script
 carrot.nodes = 2
 carrot.cores = 2
 carrot.sc11.config=aap
 carrot.sc11.tmpDir=noot
 carrot.sc11.scriptDir=mies
+
+# Details of machine "loki"
+loki.server.adaptor = SshTrilead
+loki.server.uri = ssh://loki
+loki.job.adaptor = SshTrilead
+loki.job.uri = ssh://loki
+loki.file.adaptors = SftpTrilead, SshTrilead, Local
+loki.java.path = /home/jason/JVMs/jdk1.6.0_23/bin/java
+loki.wrapper.script = loki.script
+loki.nodes = 2
+loki.cores = 2
+loki.sc11.config=aap
+loki.sc11.tmpDir=noot
+loki.sc11.scriptDir=mies
 

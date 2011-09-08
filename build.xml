@@ -7,17 +7,18 @@
 	<property name="srcdir" value="./src" />
 	<property name="builddir" value="./build" />
 
-	<property name="daemon-distdir" value="./lib-daemon" />
-	<property name="app-distdir" value="./lib-application" />
+	<property name="daemon-distdir" value="./deploy-workspace/lib-daemon" />
+	<property name="app-distdir" value="./deploy-workspace/lib-application" />
+	<property name="client-distdir" value="./lib-client" />
 
 	<path id="application.classpath">
-		<fileset dir="lib-application">
+		<fileset dir="${app-distdir}">
 			<include name="**/*.jar" />
 		</fileset>
 	</path>
 
 	<path id="daemon.classpath">
-		<fileset dir="lib-daemon">
+		<fileset dir="${daemon-distdir}">
 			<include name="**/*.jar" />
 		</fileset>
 	</path>
@@ -54,7 +55,7 @@
 	        <mkdir dir="lib-daemon" />
 
         	<!-- Copy external libraries to lib directory -->
-	        <copy todir="lib-application">
+	        <copy todir="${app-distdir}">
 		        <fileset dir="external/IPL-2.2">
 	                  <include name="*.jar"/>	
                         </fileset>
@@ -66,7 +67,7 @@
                         </fileset>
 		</copy>
 
-	        <copy todir="lib-daemon">
+	        <copy todir="${daemon-distdir}">
 		        <fileset dir="external/Deploy-13499">
 	                  <include name="*.jar"/>	
                         </fileset>
@@ -77,9 +78,6 @@
 	                  <include name="**/*.jar"/>	
                         </fileset>
 		</copy>
-
-
-
 	</target>
 
 	<target name="build" depends="clean,copy-external,compile">
