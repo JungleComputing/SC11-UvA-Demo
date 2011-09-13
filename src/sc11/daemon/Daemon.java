@@ -32,9 +32,23 @@ public class Daemon {
 
     private long id = 0;
 
-    private HashMap<Long, ibis.deploy.Job> jobs =
-            new HashMap<Long, ibis.deploy.Job>();
+    private class ProcessingJob { 
 
+    	final long id;
+    	
+    	final ibis.deploy.Job master;
+    	final ibis.deploy.Job slaves;
+    	
+    	ProcessingJob(long id, ibis.deploy.Job master, ibis.deploy.Job slaves) { 
+    		this.id = id;
+    		this.master = master;
+    		this.slaves = slaves;    		
+    	}
+    }
+
+    private HashMap<Long, ProcessingJob> jobs =
+    		new HashMap<Long, ProcessingJob>();
+    
     public Daemon(String gridname, int size, String site, boolean verbose)
             throws Exception {
 
@@ -63,6 +77,46 @@ public class Daemon {
         return id++;
     }
 
+    private Application createApplication(String name, String libs, 
+    		String config, String tmpDir, String scriptDir, String executors, 
+    		String [] args) throws Exception { 
+    
+    	Application m = applications.getApplication(name);
+
+        if (m == null) {
+            m = new Application(name);
+            
+            m.setLibs(new File("lib/sc11-application-0.2.0.jar"));
+            m.setMainClass("sc11.processing.Main");
+            m.setMemorySize(1000);
+            m.setLog4jFile(new File("log4j.properties"));
+       
+            m.setSystemProperty("gat.adaptor.path", libs + "JavaGAT-2.1.1" + 
+            		File.separator + "adaptors");
+        
+            m.setSystemProperty("sc11.config", config);
+            m.setSystemProperty("sc11.tmpDir", tmpDir);
+            m.setSystemProperty("sc11.scriptDir", scriptDir);        
+                        
+            // FIXME: hardcoded executor config!
+            m.setSystemProperty("sc11.executors", executors);
+            
+            // FIXME: hardcoded version numbers!
+            m.setJVMOptions("-classpath", 
+            		libs + "sc11-application-0.2.0.jar:" +
+            		libs + "constellation-0.7.0.jar:" +            		
+            		libs + "JavaGAT-2.1.1" + File.separator + "*:" + 
+            		libs + "ipl-2.2" + File.separator + "*");
+
+            if (args != null && args.length > 0) { 
+            	m.setArguments(args);
+            }
+            applications.addApplication(m);
+        }
+    	
+        return m;
+    }
+    
     public long exec(FilterSequence job) throws Exception {
 
         // First we get an unique ID.
@@ -111,62 +165,9 @@ public class Daemon {
     	String libs = location + File.separator + "lib" + File.separator;
                 
         // Next retrieve/create a description of the application.
-        Application a = applications.getApplication("SC11");
-
-        if (a == null) {
-            a = new Application("SC11");
-            
-            a.setLibs(new File("lib/sc11-application-0.2.0.jar"));
-
-            // application.addInputFile(new
-            // File("libibis-amuse-bhtree_worker.so"));
-            a.setMainClass("sc11.processing.Main");
-            a.setMemorySize(1000);
-            a.setLog4jFile(new File("log4j.properties"));
-       
-            a.setSystemProperty("gat.adaptor.path", libs + "JavaGAT-2.1.1" + 
-            		File.separator + "adaptors");
-        
-            a.setSystemProperty("sc11.config", config);
-            a.setSystemProperty("sc11.tmpDir", tmpDir);
-            a.setSystemProperty("sc11.scriptDir", scriptDir);        
-                        
-            // FIXME: hardcoded executor config!
-            a.setSystemProperty("sc11.executors.master", "master");
-            a.setSystemProperty("sc11.executors.slave", "slave:2,gpu");
-            
-            // FIXME: hardcoded version numbers!
-            a.setJVMOptions("-classpath", 
-            		libs + "sc11-application-0.2.0.jar:" +
-            		libs + "constellation-0.7.0.jar:" +            		
-            		libs + "JavaGAT-2.1.1" + File.separator + "*:" + 
-            		libs + "ipl-2.2" + File.separator + "*");
-                        
-            // application.setSystemProperty("ibis.managementclient", "false");
-            // application.setSystemProperty("ibis.bytescount", "");
-
-            applications.addApplication(a);
-        }
-
-        JobDescription j = new JobDescription("SC11-" + id);
-        experiment.addJob(j);
-
-        j.getCluster().setName(site);
-        j.setProcessCount(workers);
-        j.setResourceCount(workers);
-        j.setRuntime(60);
-        j.getApplication().setName("SC11");
-        j.setPoolName("SC11-" + id);
-        
-        // make sure there is an output file on the other side (hack!)
-        //        jobDescription.getApplication().setInputFiles(new File("output"));
-
-
-        //jobDescription.getApplication().setSystemProperty("java.library.path",
-         //       absCodeDir);
-
         ArrayList<String> arg = new ArrayList<String>();
 
+        arg.add("--master");
         arg.add("--inputURI");
         arg.add(job.inputDir);
         arg.add("--inputSuffix");
@@ -179,42 +180,68 @@ public class Daemon {
                 arg.add(job.filters[i]);
             }
         }
+                
+        String [] args = arg.toArray(new String[arg.size()]);            
+    	
+        Application m = createApplication("SC11-Master", libs, config, tmpDir, 
+        		scriptDir, "master", args);
+        
+        Application s = createApplication("SC11-Slave", libs, config, tmpDir, 
+        		scriptDir, "slave:2,gpu", new String [] { "--slave" });
+        
+        JobDescription jm = new JobDescription("SC11-Master-" + id);
+        experiment.addJob(jm);
 
-        j.getApplication().setArguments(arg.toArray(new String[arg.size()]));
-        ibis.deploy.Job result = deploy.submitJob(j, a, cluster, null, null);
+        jm.getCluster().setName(site);
+        jm.setProcessCount(1);
+        jm.setResourceCount(1);
+        jm.setRuntime(60);
+        jm.getApplication().setName("SC11-Master");
+        jm.setPoolName("SC11-" + id);
+        
+        ibis.deploy.Job master = deploy.submitJob(jm, m, cluster, null, null);
+        
+        JobDescription js = new JobDescription("SC11-Slave-" + id);
+        experiment.addJob(js);
 
-        addJob(id, result);
+        js.getCluster().setName(site);
+        js.setProcessCount(workers);
+        js.setResourceCount(workers);
+        js.setRuntime(60);
+        js.getApplication().setName("SC11-Slave");
+        js.setPoolName("SC11-" + id);
 
+        jm.getApplication().setArguments(new String[] {"--slave"});
+        ibis.deploy.Job slaves = deploy.submitJob(js, s, cluster, null, null);
+        
+        addJob(new ProcessingJob(id, master, slaves));
         return id;
     }
 
-    private synchronized void addJob(long id, ibis.deploy.Job job) {
-        jobs.put(id, job);
+    private synchronized void addJob(ProcessingJob job) {
+        jobs.put(job.id, job);
     }
 
-    private synchronized ibis.deploy.Job getJob(long id) {
+    private synchronized ProcessingJob getJob(long id) {
         return jobs.get(id);
     }
 
-    private synchronized ibis.deploy.Job removeJob(long id) {
+    private synchronized ProcessingJob removeJob(long id) {
         return jobs.remove(id);
     }
 
     public Result info(long id) {
 
-        ibis.deploy.Job job = jobs.get(id);
+    	ProcessingJob job = jobs.get(id);
 
         if (job == null) {
             return new Result().failed("Unknown job id: " + id);
         }
 
-        State s = job.getState();
-
-        if (s == State.DEPLOYED) {
-            // we should ask the application!
-        }
-
-        return new Result().setState(s.name());
+        State m = job.master.getState();
+        State s = job.slaves.getState();
+        
+        return new Result().setState(m.name() + " | " + s.name());
     }
 
     public static void fatal(String message) {

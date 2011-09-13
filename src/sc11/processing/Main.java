@@ -76,23 +76,23 @@ public class Main {
             System.err.println("No sc11.scriptDir property specified!");
             System.exit(1);
         }
-                                                     
-        String executorConfigMaster = p.getProperty("sc11.executors.master");
-        String executorConfigSlave = p.getProperty("sc11.executors.slave");
         
-		/* For debugging */
+        /* For debugging */
 		System.out.println("Command line args: " + Arrays.toString(args));
         System.out.println("  gat.adaptor.path=" + p.getProperty("gat.adaptor.path"));
         /* End debugging */
         
+        String [] executors = parseExecutorConfig(p.getProperty("sc11.executors"));
+		
         // Store some 'global' configuration
         LocalConfig.set(tmpdir, scriptdir);
 
         try { 
-        	FilterSequence f = FilterSequence.fromArguments(args);
+        
+        	if (args.length > 0 && args[0].equals("--master")) { 
+        
+        		FilterSequence f = FilterSequence.fromArguments(args);
             
-        	if (rank == 0) { 
-        		String [] executors = parseExecutorConfig(executorConfigMaster);
         		Master m = new Master(executors, config);
         		
         		long id = m.exec(f);
@@ -115,7 +115,6 @@ public class Main {
         		m.done();
         		
            } else { 
-        		String [] executors = parseExecutorConfig(executorConfigSlave);
         		Slave s = new Slave(executors);
         		s.run();
         	} 
