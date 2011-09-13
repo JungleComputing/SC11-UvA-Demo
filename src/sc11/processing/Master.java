@@ -152,6 +152,8 @@ public class Master {
 
         //Operation o = new Operation(this, id, in, scripts, out);
 
+        System.out.println("Submitting BulkOperation(" + id + ", " + fs.inputDir + ", " + fs.inputSuffix + ", " + fs.outputDir);
+        
         submit(o);
 
         return id;
