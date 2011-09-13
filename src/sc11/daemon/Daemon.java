@@ -96,33 +96,28 @@ public class Daemon {
                     + site + "\" in grid description file.");
         }
 
-        String scriptDir = cluster.getProperties().getProperty("sc11.scriptDir");
-
-        if (scriptDir == null) {
-            throw new Exception("sc11.scriptDir property not set for cluster \""
-                    + site + "\" in grid description file.");
-        }
-
-        String tmpDir = cluster.getProperties().getProperty("sc11.tmpDir");
+        String tmpDir = cluster.getProperties().getProperty("sc11.tmp");
 
         if (tmpDir == null) {
             throw new Exception("sc11.tmpDir property not set for cluster \""
                     + site + "\" in grid description file.");
         }
+        
+        String location = cluster.getProperties().getProperty("sc11.location");
 
-        String javagat = cluster.getProperties().getProperty("sc11.javagat");
-
-        if (javagat == null) {
-            throw new Exception("sc11.javagat property not set for cluster \""
+        if (location == null) {
+            throw new Exception("sc11.location property not set for cluster \""
                     + site + "\" in grid description file.");
         }
-
-        String ipl = cluster.getProperties().getProperty("sc11.ipl");
-
-        if (ipl == null) {
-            throw new Exception("sc11.ipl property not set for cluster \""
-                    + site + "\" in grid description file.");
-        }
+        
+        String gat = location + File.separator + "JavaGAT-2.1.1" + 
+        		File.separator + "lib";
+        
+        String ipl = location + File.separator + "IPL-2.2" +  
+        		File.separator + "lib";
+        
+        String app = location + File.separator + "Demo-0.2" + 
+        		File.separator + "lib";
         
         // Next retrieve/create a description of the application.
         Application a = applications.getApplication("SC11");
@@ -130,7 +125,7 @@ public class Daemon {
         if (a == null) {
             a = new Application("SC11");
             
-            a.setLibs(new File("lib-application"));
+            //a.setLibs(new File("lib-application"));
 
             // application.addInputFile(new
             // File("libibis-amuse-bhtree_worker.so"));
@@ -138,14 +133,17 @@ public class Daemon {
             a.setMemorySize(1000);
             a.setLog4jFile(new File("log4j.properties"));
        
-            a.setSystemProperty("gat.adaptor.path", javagat + "/adaptors");
+            a.setSystemProperty("gat.adaptor.path", gat + File.separator + 
+            		"adaptors");
         
             a.setSystemProperty("sc11.config", config);
-            a.setSystemProperty("sc11.scriptDir", scriptDir);
             a.setSystemProperty("sc11.tmpDir", tmpDir);
-           
-            
-            
+        
+            a.setJVMOptions("-classpath \"" + 
+            		ipl + File.separator + "*:" +
+            		gat + File.separator + "*:" + 
+            		app + File.separator + "*\"");
+                        
             // application.setSystemProperty("ibis.managementclient", "false");
             // application.setSystemProperty("ibis.bytescount", "");
 
