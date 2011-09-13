@@ -62,7 +62,7 @@ public class Daemon {
         return id++;
     }
 
-    public long exec(Job job) throws Exception {
+    public long exec(FilterSequence job) throws Exception {
 
         // First we get an unique ID.
         long id = getID();
@@ -110,23 +110,41 @@ public class Daemon {
                     + site + "\" in grid description file.");
         }
 
+        String javagat = cluster.getProperties().getProperty("sc11.javagat");
+
+        if (javagat == null) {
+            throw new Exception("sc11.javagat property not set for cluster \""
+                    + site + "\" in grid description file.");
+        }
+
+        String ipl = cluster.getProperties().getProperty("sc11.ipl");
+
+        if (ipl == null) {
+            throw new Exception("sc11.ipl property not set for cluster \""
+                    + site + "\" in grid description file.");
+        }
+        
         // Next retrieve/create a description of the application.
         Application a = applications.getApplication("SC11");
 
         if (a == null) {
             a = new Application("SC11");
-            a.setLibs(new File("lib-server"),
-                      new File("lib-application"));
+            
+            a.setLibs(new File("lib-application"));
 
             // application.addInputFile(new
             // File("libibis-amuse-bhtree_worker.so"));
             a.setMainClass("sc11.processing.Main");
             a.setMemorySize(1000);
             a.setLog4jFile(new File("log4j.properties"));
-            a.setSystemProperty("gat.adaptor.path", "./lib-application/adaptors");
+       
+            a.setSystemProperty("gat.adaptor.path", javagat + "/adaptors");
+        
             a.setSystemProperty("sc11.config", config);
-            a.setSystemProperty("sc11.scriptdir", scriptDir);
-            a.setSystemProperty("sc11.tmpdir", tmpDir);
+            a.setSystemProperty("sc11.scriptDir", scriptDir);
+            a.setSystemProperty("sc11.tmpDir", tmpDir);
+           
+            
             
             // application.setSystemProperty("ibis.managementclient", "false");
             // application.setSystemProperty("ibis.bytescount", "");

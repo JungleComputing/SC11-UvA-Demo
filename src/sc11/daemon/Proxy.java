@@ -32,7 +32,7 @@ public class Proxy extends Thread {
 
         private void handleExec() throws IOException {
 
-            Job job = Job.read(in);
+            FilterSequence job = FilterSequence.read(in);
 
             long id = -1;
             Exception ex = null;
@@ -153,7 +153,7 @@ public class Proxy extends Thread {
         ss = new ServerSocket(port);
     }
 
-    public synchronized long exec(Job job) throws Exception {
+    public synchronized long exec(FilterSequence job) throws Exception {
         return master.exec(job);
     }
 

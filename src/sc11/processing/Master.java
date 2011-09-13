@@ -13,6 +13,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.HashMap;
 
+import sc11.daemon.FilterSequence;
+
 //import sc11.daemon.Proxy;
 
 public class Master {
@@ -32,29 +34,28 @@ public class Master {
 
     private boolean done = false;
 
-    public Master(int executorCount, String config) throws Exception {
+    public Master(String [] executors, String filterConfig) throws Exception {
 
-        readConfig(config);
-
+        readFilterConfig(filterConfig);
+        
         StealPool master = new StealPool("master");
         StealStrategy st = StealStrategy.SMALLEST;
 
-        Executor [] e = new Executor[executorCount];
+        Executor [] e = new Executor[executors.length];
 
-        for (int i=0;i<executorCount;i++) {
+        for (int i=0;i<executors.length;i++) {
             e[i] = new SimpleExecutor(master, master,
-                    new UnitWorkerContext("master"), st, st, st);
+                    new UnitWorkerContext(executors[i]), st, st, st);
         }
 
         constellation = ConstellationFactory.createConstellation(e);
-        constellation.activate();
     }
 
     private synchronized long getID() {
         return (id++) << 16;
     }
-
-    private void readConfig(String file) throws Exception {
+    
+    private void readFilterConfig(String file) throws Exception {
 
         BufferedReader r = new BufferedReader(new FileReader(new File(file)));
 
@@ -122,40 +123,28 @@ public class Master {
         return o.getResult();
     }
 
-    public long exec(String in, String filetype, String [] ops, String out)
-            throws Exception {
-
-        if (in == null || in.length() == 0) {
-            throw new Exception("Missing input file/directory!");
-        }
-
-        if (out == null || out.length() == 0) {
-            throw new Exception("Missing output directory!");
-        }
-
-        if (filetype == null || filetype.length() == 0) {
-            throw new Exception("Missing file type!");
-        }
+    public long exec(FilterSequence fs) throws Exception {
 
         long id = getID();
 
         ScriptDescription [] scripts = null;
 
-        if (ops != null && ops.length > 0) {
+        if (fs.filters != null && fs.filters.length > 0) {
 
-            scripts = new ScriptDescription[ops.length];
+            scripts = new ScriptDescription[fs.filters.length];
 
-            for (int i=0;i<ops.length;i++) {
+            for (int i=0;i<fs.filters.length;i++) {
 
-                scripts[i] = descriptions.get(ops[i]);
+                scripts[i] = descriptions.get(fs.filters[i]);
 
                 if (scripts[i] == null) {
-                    throw new Exception("Operation not found: " + ops[i]);
+                    throw new Exception("Operation not found: " + fs.filters[i]);
                 }
             }
         }
 
-        BulkOperation o = new BulkOperation(this, id, in, filetype, scripts, out);
+        BulkOperation o = new BulkOperation(this, id, fs.inputDir, 
+        		fs.inputSuffix, scripts, fs.outputDir);
 
         //Operation o = new Operation(this, id, in, scripts, out);
 
@@ -205,7 +194,20 @@ public class Master {
             }
         }
     }
+    
+    public void run(Job job) { 
+    	try { 
+            constellation.activate();
+            
+    		
+    		
+    	} catch (Exception e) {
+			// TODO: handle exception
+		}
+    }
+    
 
+/*
     public static void main(String [] args) {
 
         try {
@@ -225,8 +227,8 @@ public class Master {
                     scriptdir = args[++i];
                 } else if (args[i].startsWith("--tmpdir")) {
                     tmpdir = args[++i];
-                } else if (args[i].startsWith("--port")) {
-                    port = Integer.parseInt(args[++i]);
+              //  } else if (args[i].startsWith("--port")) {
+              //     port = Integer.parseInt(args[++i]);
                 } else {
                     System.err.println("Unknown option " + args[i]);
                     System.exit(1);
@@ -262,10 +264,8 @@ public class Master {
 
             Master m = new Master(executorCount, config);
 
-            /*
             Proxy p = new Proxy(m, port);
             p.start();
-            */
             m.waitUntilDone();
 
         } catch (Exception e) {
@@ -273,6 +273,7 @@ public class Master {
             e.printStackTrace(System.err);
         }
     }
+*/    
 }
 
 

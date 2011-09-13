@@ -7,8 +7,8 @@
 	<property name="srcdir" value="./src" />
 	<property name="builddir" value="./build" />
 
-	<property name="daemon-distdir" value="./deploy-workspace/lib-daemon" />
-	<property name="app-distdir" value="./deploy-workspace/lib-application" />
+	<property name="daemon-distdir" value="./lib-daemon" />
+	<property name="app-distdir" value="./lib-application" />
 	<property name="client-distdir" value="./lib-client" />
 
 	<path id="application.classpath">

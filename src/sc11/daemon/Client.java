@@ -76,7 +76,7 @@ public class Client {
         try {
             String [] operations = filters.toArray(new String[filters.size()]);
 
-            Job job = new Job(input, filetype, output, operations, site, nodes);
+            FilterSequence job = new FilterSequence(input, filetype, output, operations, site, nodes);
 
             Stub s = new Stub(daemon, port);
             long id = s.exec(job);

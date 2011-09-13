@@ -1,5 +1,5 @@
 #!/bin/sh
-ROOT=/home/jason/Workspace/SC11-UvA-Demo/deploy-workspace
+ROOT=/home/jason/Workspace/SC11-UvA-Demo/
 
 exec java \
     -classpath "$ROOT/lib-daemon/"'*' \

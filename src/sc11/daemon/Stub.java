@@ -23,10 +23,10 @@ public class Stub {
         out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
     }
 
-    public long exec(Job job) throws IOException {
+    public long exec(FilterSequence job) throws IOException {
 
         out.write(Protocol.OPCODE_EXEC);
-        Job.write(job, out);
+        FilterSequence.write(job, out);
         out.flush();
 
         // TODO: may return -1 on EOS
