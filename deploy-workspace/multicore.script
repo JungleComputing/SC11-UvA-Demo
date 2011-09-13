@@ -10,7 +10,7 @@ ARGS=$*
 
 for i in `seq 1 $NR_PROCS`;
 do
-	$JAVA $ARGS&
+	$JAVA -Dsc11.pool.rank=$i $ARGS&
 done  
 
 wait
