@@ -33,6 +33,13 @@ public class Main {
 			}
 		}
 	
+		if (executors.size() == 0) { 
+			System.err.println("Failed to parse executor list!");
+			System.err.println("    " + config);
+			System.exit(1);
+		}
+		
+		
 		return executors.toArray(new String[executors.size()]);
 	}
 	
@@ -69,7 +76,7 @@ public class Main {
             System.err.println("No sc11.scriptDir property specified!");
             System.exit(1);
         }
-
+                                                     
         String executorConfigMaster = p.getProperty("sc11.executors.master");
         String executorConfigSlave = p.getProperty("sc11.executors.slave");
         
