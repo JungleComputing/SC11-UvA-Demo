@@ -42,13 +42,14 @@ public class Master {
         StealStrategy st = StealStrategy.SMALLEST;
 
         Executor [] e = new Executor[executors.length];
-
+        
         for (int i=0;i<executors.length;i++) {
             e[i] = new SimpleExecutor(master, master,
                     new UnitWorkerContext(executors[i]), st, st, st);
         }
 
         constellation = ConstellationFactory.createConstellation(e);
+        constellation.activate();
     }
 
     private synchronized long getID() {
@@ -193,20 +194,7 @@ public class Master {
                 // ignored
             }
         }
-    }
-    
-    public void run(Job job) { 
-    	try { 
-            constellation.activate();
-            
-    		
-    		
-    	} catch (Exception e) {
-			// TODO: handle exception
-		}
-    }
-    
-
+    }     
 /*
     public static void main(String [] args) {
 
