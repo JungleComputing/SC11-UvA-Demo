@@ -7,13 +7,13 @@
 
 	<property name="gat" value="JavaGAT-2.1.1" />
 	<property name="ipl" value="ipl-2.2" />
-	<property name="deploy" value="Deploy-13499" />
-	<property name="constellation" value="Constellation-0.7" />
+	<property name="deploy" value="deploy-13499" />
+	<property name="constellation" value="constellation-0.7.0" />
 
 	<!-- Compile application -->
 	<path id="application.classpath">
-		<fileset dir="./external/${constellation}">
-			<include name="**/*.jar" />
+		<fileset dir="./external">
+			<include name="${constellation}.jar" />
 		</fileset>
 		<fileset dir="./external/${gat}/lib">
 			<include name="**/*.jar" />
@@ -38,8 +38,8 @@
 
 	<!-- Compile daemon -->
 	<path id="daemon.classpath">
-		<fileset dir="./external/${deploy}">
-			<include name="*.jar" />
+		<fileset dir="./external">
+			<include name="${deploy}.jar" />
 		</fileset>
 		<fileset dir="./external/${ipl}/lib">
 			<include name="*.jar" />
@@ -90,6 +90,7 @@
 	        <mkdir dir="distribution/sc11-demo/lib" />
 	        <mkdir dir="distribution/sc11-demo/lib/${gat}" />
 	        <mkdir dir="distribution/sc11-demo/lib/${ipl}" />
+	        <mkdir dir="distribution/sc11-demo/lib-server" />
 
         	<!-- Copy various dirs to distribution directory -->
 	        <copy todir="distribution/sc11-demo/lib/${gat}">
@@ -102,6 +103,7 @@
 	                  <include name="**/*"/>	
                         </fileset>
 		</copy>
+
 	        <copy todir="distribution/sc11-demo/lib">
 		        <fileset dir="external/">
 	                  <include name="*.jar"/>	
@@ -110,6 +112,13 @@
 	                  <include name="*"/>	
                         </fileset>
 		</copy>
+
+	        <copy todir="distribution/sc11-demo/lib-server">
+		        <fileset dir="external/">
+	                  <include name="server-all.jar"/>	
+                        </fileset>
+		</copy>
+
 
 	        <copy todir="distribution/sc11-demo">
 		        <fileset dir=".">
