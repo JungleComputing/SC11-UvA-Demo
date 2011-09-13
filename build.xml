@@ -90,7 +90,6 @@
 	        <mkdir dir="distribution/sc11-demo/lib" />
 	        <mkdir dir="distribution/sc11-demo/lib/${gat}" />
 	        <mkdir dir="distribution/sc11-demo/lib/${ipl}" />
-	        <mkdir dir="distribution/sc11-demo/lib-server" />
 
         	<!-- Copy various dirs to distribution directory -->
 	        <copy todir="distribution/sc11-demo/lib/${gat}">
@@ -113,19 +112,19 @@
                         </fileset>
 		</copy>
 
-	        <copy todir="distribution/sc11-demo/lib-server">
-		        <fileset dir="external/">
-	                  <include name="server-all.jar"/>	
-                        </fileset>
-		</copy>
-
-
 	        <copy todir="distribution/sc11-demo">
 		        <fileset dir=".">
 	                  <include name="scripts/**/*"/>	
                         </fileset>
 		        <fileset dir=".">
 	                  <include name="deploy-workspace/**/*"/>	
+                        </fileset>
+		        <fileset dir="./bin">
+	                  <include name="*"/>	
+                        </fileset>
+		        <fileset dir=".">
+	                  <include name="log4j.properties"/>	
+	                  <include name="multicore.script"/>	
                         </fileset>
 		</copy>
 	</target>
