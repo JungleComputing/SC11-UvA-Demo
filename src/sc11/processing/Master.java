@@ -103,8 +103,10 @@ public class Master {
             terminated.put(o.getID(), o);
         }
 
+        Result r = o.getResult();
+        
         System.out.println("Operation " + o.getID() + " terminated:\n" +
-                o.getResult().getOuput());
+                r.getOuput() + "\n" + r.getError());
     }
 
     public Result info(long id) throws Exception {
@@ -152,7 +154,7 @@ public class Master {
 
         //Operation o = new Operation(this, id, in, scripts, out);
 
-        System.out.println("Submitting BulkOperation(" + id + ", " + fs.inputDir + ", " + fs.inputSuffix + ", " + fs.outputDir);
+        System.out.println("Submitting BulkOperation(" + id + ", " + fs.inputDir + ", " + fs.inputSuffix + ", " + fs.outputDir + ")");
         
         submit(o);
 

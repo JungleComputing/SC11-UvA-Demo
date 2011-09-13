@@ -84,6 +84,8 @@ public class BulkOperation extends Activity {
     @Override
     public void initialize() throws Exception {
 
+    	System.out.println("BulkOperation " + id + " running..");
+    	
         try {
             // Check if input exists
             File input = GAT.createFile(in);
