@@ -78,8 +78,8 @@ public class Daemon {
     }
 
     private Application createApplication(String name, String libs, 
-    		String config, String tmpDir, String scriptDir, String executors, 
-    		String [] args) throws Exception { 
+    		String config, String tmpDir, String scriptDir, String master, 
+    		String executors, String [] args) throws Exception { 
     
     	Application m = applications.getApplication(name);
 
@@ -94,6 +94,7 @@ public class Daemon {
             m.setSystemProperty("gat.adaptor.path", libs + "JavaGAT-2.1.1" + 
             		File.separator + "adaptors");
         
+            m.setSystemProperty("ibis.constellation.master", master);
             m.setSystemProperty("sc11.config", config);
             m.setSystemProperty("sc11.tmpDir", tmpDir);
             m.setSystemProperty("sc11.scriptDir", scriptDir);        
@@ -184,10 +185,10 @@ public class Daemon {
         String [] args = arg.toArray(new String[arg.size()]);            
     	
         Application m = createApplication("SC11-Master", libs, config, tmpDir, 
-        		scriptDir, "master", args);
+        		scriptDir, "true", "master", args);
         
         Application s = createApplication("SC11-Slave", libs, config, tmpDir, 
-        		scriptDir, "slave:2,gpu", new String [] { "--slave" });
+        		scriptDir, "false", "slave:2,gpu", new String [] { "--slave" });
         
         JobDescription jm = new JobDescription("SC11-Master-" + id);
         experiment.addJob(jm);
