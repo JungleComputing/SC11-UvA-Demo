@@ -107,13 +107,8 @@ public class Daemon {
         		File.separator + "configuration";
         
     	String scriptDir = location + File.separator + "scripts";
-                
-        // FIXME: This has hardcoded version numbers!        
-        String gat = location + File.separator + "JavaGAT-2.1.1" + 
-        		File.separator + "lib";
-        
-        String ipl = location + File.separator + "ipl-2.2" +  
-        		File.separator + "lib";
+    
+    	String libs = location + File.separator + "lib" + File.separator;
                 
         // Next retrieve/create a description of the application.
         Application a = applications.getApplication("SC11");
@@ -129,20 +124,23 @@ public class Daemon {
             a.setMemorySize(1000);
             a.setLog4jFile(new File("log4j.properties"));
        
-            a.setSystemProperty("gat.adaptor.path", gat + File.separator + 
-            		"adaptors");
+            a.setSystemProperty("gat.adaptor.path", libs + "JavaGAT-2.1.1" + 
+            		File.separator + "adaptors");
         
             a.setSystemProperty("sc11.config", config);
             a.setSystemProperty("sc11.tmpDir", tmpDir);
             a.setSystemProperty("sc11.scriptDir", scriptDir);        
+                        
+            // FIXME: hardcoded executor config!
             a.setSystemProperty("sc11.executors.master", "master");
             a.setSystemProperty("sc11.executors.slave", "slave:2,gpu");
             
+            // FIXME: hardcoded version numbers!
             a.setJVMOptions("-classpath \"" + 
-            		location + File.separator + "sc11-application-0.2.0.jar:" +
-            		location + File.separator + "constellation-0.7.jar:" +            		
-            		gat + File.separator + "*:" + 
-            		ipl + File.separator + "*\"");
+            		libs + "sc11-application-0.2.0.jar:" +
+            		libs + "constellation-0.7.jar:" +            		
+            		libs + "JavaGAT-2.1.1" + File.separator + "*:" + 
+            		libs + "ipl-2.2" + File.separator + "*\"");
                         
             // application.setSystemProperty("ibis.managementclient", "false");
             // application.setSystemProperty("ibis.bytescount", "");
