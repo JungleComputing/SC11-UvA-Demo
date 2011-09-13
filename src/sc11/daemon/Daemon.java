@@ -169,11 +169,11 @@ public class Daemon {
 
         ArrayList<String> arg = new ArrayList<String>();
 
-        arg.add("--inputDir");
+        arg.add("--inputURI");
         arg.add(job.inputDir);
         arg.add("--inputSuffix");
         arg.add(job.inputSuffix);
-        arg.add("--ouputDir");
+        arg.add("--ouputURI");
         arg.add(job.outputDir);
 
         if (job.filters != null && job.filters.length > 0) {
