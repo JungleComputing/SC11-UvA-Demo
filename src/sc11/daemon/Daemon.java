@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import sc11.processing.Result;
+import sc11.shared.FilterSequence;
 
 import ibis.deploy.Application;
 import ibis.deploy.ApplicationSet;

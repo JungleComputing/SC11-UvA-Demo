@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import sc11.daemon.FilterSequence;
+import sc11.shared.FilterSequence;
 
 public class Main {
     

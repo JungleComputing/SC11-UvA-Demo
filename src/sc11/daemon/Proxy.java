@@ -10,6 +10,8 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 import sc11.processing.Result;
+import sc11.shared.FilterSequence;
+import sc11.shared.Protocol;
 
 public class Proxy extends Thread {
 

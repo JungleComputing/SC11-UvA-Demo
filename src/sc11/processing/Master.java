@@ -13,7 +13,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.HashMap;
 
-import sc11.daemon.FilterSequence;
+import sc11.shared.FilterSequence;
 
 //import sc11.daemon.Proxy;
 
