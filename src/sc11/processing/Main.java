@@ -25,7 +25,7 @@ public class Main {
 			
 			if (index > 0) { 
 				count = Integer.parseInt(t.substring(index+1)); 
-				t = t.substring(0, index-1);
+				t = t.substring(0, index);
 			}
 	
 			for (int i=0;i<count;i++) { 
