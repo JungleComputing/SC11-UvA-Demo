@@ -96,7 +96,7 @@ public class FilterSequence {
                 inputURI = args[++i];
             } else if (args[i].equals("--outputURI")) {
                 outputURI = args[++i];
-            } else if (args[i].equals("--inputFileType")) {
+            } else if (args[i].equals("--inputSuffix")) {
                 inputFileType = args[++i];
             } else if (args[i].equals("--filter")) {
                 filters.add(args[++i]);
@@ -112,7 +112,7 @@ public class FilterSequence {
         }
 
         if (inputFileType == null) {
-            throw new Exception("InputFileType type not set!");
+            throw new Exception("InputSuffix not set!");
         }
 
         String [] tmp = filters.toArray(new String[filters.size()]);
