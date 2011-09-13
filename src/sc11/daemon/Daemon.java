@@ -103,8 +103,11 @@ public class Daemon {
         	tmpDir = location + File.separator + "tmp";
         }
         
-        String config = location + File.separator + "configuration";
+        String config = location + File.separator + "scripts" + 
+        		File.separator + "configuration";
         
+    	String scriptDir = location + File.separator + "scripts";
+                
         // FIXME: This has hardcoded version numbers!        
         String gat = location + File.separator + "JavaGAT-2.1.1" + 
         		File.separator + "lib";
@@ -131,7 +134,10 @@ public class Daemon {
         
             a.setSystemProperty("sc11.config", config);
             a.setSystemProperty("sc11.tmpDir", tmpDir);
-        
+            a.setSystemProperty("sc11.scriptDir", scriptDir);        
+            a.setSystemProperty("sc11.executors.master", "master");
+            a.setSystemProperty("sc11.executors.slave", "slave:2,gpu");
+            
             a.setJVMOptions("-classpath \"" + 
             		location + File.separator + "sc11-application-0.2.0.jar:" +
             		location + File.separator + "constellation-0.7.jar:" +            		
