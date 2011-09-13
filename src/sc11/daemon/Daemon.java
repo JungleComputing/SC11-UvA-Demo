@@ -118,7 +118,7 @@ public class Daemon {
         if (a == null) {
             a = new Application("SC11");
             
-            //a.setLibs(new File("lib-application"));
+            a.setLibs(new File("lib/sc11-application-0.2.0.jar"));
 
             // application.addInputFile(new
             // File("libibis-amuse-bhtree_worker.so"));
