@@ -173,7 +173,7 @@ public class Daemon {
         arg.add(job.inputDir);
         arg.add("--inputSuffix");
         arg.add(job.inputSuffix);
-        arg.add("--ouputURI");
+        arg.add("--outputURI");
         arg.add(job.outputDir);
 
         if (job.filters != null && job.filters.length > 0) {
