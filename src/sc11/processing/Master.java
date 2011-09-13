@@ -44,6 +44,9 @@ public class Master {
         Executor [] e = new Executor[executors.length];
         
         for (int i=0;i<executors.length;i++) {
+        	System.out.println("Creating executor with context \"" +
+					executors[i] + "\"");
+        	
             e[i] = new SimpleExecutor(master, master,
                     new UnitWorkerContext(executors[i]), st, st, st);
         }

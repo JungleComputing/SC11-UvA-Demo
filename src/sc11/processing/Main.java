@@ -49,13 +49,6 @@ public class Main {
      
         Properties p = System.getProperties();
         
-        int rank = Integer.parseInt(p.getProperty("sc11.pool.rank", "-1"));
-
-        if (rank < 0) { 
-        	System.err.println("Invalid sc11.pool.rank property!");
-            System.exit(1);
-        }
-
         String config = p.getProperty("sc11.config");
 
         if (config == null) {

@@ -5,7 +5,7 @@
 	<classpathentry kind="lib" path="external/JavaGAT-2.1.1/lib/GAT-API.jar"/>
 	<classpathentry kind="lib" path="external/ipl-2.2/lib/ipl-2.2.jar"/>
 	<classpathentry kind="lib" path="external/ipl-2.2/lib/ibis-util-2.2.jar"/>
-	<classpathentry kind="lib" path="external/constellation-0.7.0.jar"/>
+	<classpathentry kind="lib" path="external/constellation-0.7.0.jar" sourcepath="/constellation-0.6.1"/>
 	<classpathentry kind="lib" path="external/deploy-13499.jar"/>
 	<classpathentry kind="output" path="build-eclipse"/>
 </classpath>
