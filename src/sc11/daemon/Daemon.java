@@ -138,7 +138,7 @@ public class Daemon {
             // FIXME: hardcoded version numbers!
             a.setJVMOptions("-classpath \"" + 
             		libs + "sc11-application-0.2.0.jar:" +
-            		libs + "constellation-0.7.jar:" +            		
+            		libs + "constellation-0.7.0.jar:" +            		
             		libs + "JavaGAT-2.1.1" + File.separator + "*:" + 
             		libs + "ipl-2.2" + File.separator + "*\"");
                         
