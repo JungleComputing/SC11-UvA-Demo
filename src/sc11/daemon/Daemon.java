@@ -93,7 +93,7 @@ public class Daemon {
        
             m.setSystemProperty("gat.adaptor.path", libs + "JavaGAT-2.1.1" + 
             		File.separator + "adaptors");
-        
+                                         
             m.setSystemProperty("ibis.constellation.master", master);
             m.setSystemProperty("sc11.config", config);
             m.setSystemProperty("sc11.tmpDir", tmpDir);
