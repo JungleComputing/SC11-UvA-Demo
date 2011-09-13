@@ -136,7 +136,7 @@ public class Daemon {
             a.setSystemProperty("sc11.executors.slave", "slave:2,gpu");
             
             // FIXME: hardcoded version numbers!
-            a.setJVMOptions("-classpath \"" + 
+            a.setJVMOptions("-classpath", "\"" + 
             		libs + "sc11-application-0.2.0.jar:" +
             		libs + "constellation-0.7.0.jar:" +            		
             		libs + "JavaGAT-2.1.1" + File.separator + "*:" + 
