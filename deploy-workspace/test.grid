@@ -40,23 +40,16 @@ carrot.java.path = /home/jason/JVMs/jdk1.6.0_23/bin/java
 carrot.job.wrapper.script = multicore.script
 carrot.nodes = 2
 carrot.cores = 2
-carrot.sc11.config = /home/jason/sc11-demo/scripts/configuration
-carrot.sc11.tmpDir = /home/jason/sc11-demo/tmp
-carrot.sc11.scriptDir = /home/jason/sc11-demo/scripts
-carrot.sc11.javagat = /home/jason/sc11-demo/JavaGAT-2.1.1/lib
-carrot.sc11.ipl = /home/jason/sc11-demo/IPL-2.2
+carrot.sc11.location = /home/jason/sc11-demo
 
 # Details of machine "loki"
 loki.server.adaptor = SshTrilead
-loki.server.uri = ssh://loki
+	loki.server.uri = ssh://loki
 loki.job.adaptor = SshTrilead
 loki.job.uri = ssh://loki
 loki.file.adaptors = SftpTrilead, SshTrilead, Local
 loki.java.path = /home/jason/JVMs/jdk1.6.0_23/bin/java
 loki.wrapper.script = loki.script
-loki.nodes = 2
+loki.nodes = 1
 loki.cores = 2
-loki.sc11.config=aap
-loki.sc11.tmpDir=noot
-loki.sc11.scriptDir=mies
-
+carrot.sc11.location = /home/jason/sc11-demo

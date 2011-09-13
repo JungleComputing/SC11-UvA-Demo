@@ -89,21 +89,7 @@ public class Daemon {
                     "description file.");
         }
 
-        // Get some info from the cluster.
-        String config = cluster.getProperties().getProperty("sc11.config");
-
-        if (config == null) {
-            throw new Exception("sc11.config property not set for cluster \""
-                    + site + "\" in grid description file.");
-        }
-
-        String tmpDir = cluster.getProperties().getProperty("sc11.tmp");
-
-        if (tmpDir == null) {
-            throw new Exception("sc11.tmpDir property not set for cluster \""
-                    + site + "\" in grid description file.");
-        }
-        
+        // Get some info from the cluster.              
         String location = cluster.getProperties().getProperty("sc11.location");
 
         if (location == null) {
@@ -111,15 +97,21 @@ public class Daemon {
                     + site + "\" in grid description file.");
         }
         
+        String tmpDir = cluster.getProperties().getProperty("sc11.tmp");
+
+        if (tmpDir == null) {
+        	tmpDir = location + File.separator + "tmp";
+        }
+        
+        String config = location + File.separator + "configuration";
+        
+        // FIXME: This has hardcoded version numbers!        
         String gat = location + File.separator + "JavaGAT-2.1.1" + 
         		File.separator + "lib";
         
-        String ipl = location + File.separator + "IPL-2.2" +  
+        String ipl = location + File.separator + "ipl-2.2" +  
         		File.separator + "lib";
-        
-        String app = location + File.separator + "Demo-0.2" + 
-        		File.separator + "lib";
-        
+                
         // Next retrieve/create a description of the application.
         Application a = applications.getApplication("SC11");
 
@@ -141,9 +133,10 @@ public class Daemon {
             a.setSystemProperty("sc11.tmpDir", tmpDir);
         
             a.setJVMOptions("-classpath \"" + 
-            		ipl + File.separator + "*:" +
+            		location + File.separator + "sc11-application-0.2.0.jar:" +
+            		location + File.separator + "constellation-0.7.jar:" +            		
             		gat + File.separator + "*:" + 
-            		app + File.separator + "*\"");
+            		ipl + File.separator + "*\"");
                         
             // application.setSystemProperty("ibis.managementclient", "false");
             // application.setSystemProperty("ibis.bytescount", "");
