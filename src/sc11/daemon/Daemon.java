@@ -19,13 +19,14 @@ import ibis.deploy.Workspace;
 
 public class Daemon {
 
-    private final int defaultSize;
+	private final int defaultSize;
     private final String defaultSite;
 
     private final Deploy deploy;
-
     // private final GUI gui;
-
+    
+    private final Contact server;
+    
     private final Grid grid;
     private final ApplicationSet applications;
     private final Experiment experiment;
@@ -64,6 +65,8 @@ public class Daemon {
         deploy = new Deploy(new File("deploy-workspace"), verbose, false, 0, 
         		null, null, true);
 
+        server = new Contact(deploy.getServerAddress());
+        
         /*
         if (useGui) {
             gui = new GUI(deploy, workspace, Mode.MONITOR, logos);

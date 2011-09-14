@@ -3,9 +3,9 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="external/JavaGAT-2.1.1/lib/GAT-API.jar"/>
-	<classpathentry kind="lib" path="external/ipl-2.2/lib/ipl-2.2.jar"/>
-	<classpathentry kind="lib" path="external/ipl-2.2/lib/ibis-util-2.2.jar"/>
 	<classpathentry kind="lib" path="external/constellation-0.7.0.jar" sourcepath="/constellation-0.6.1"/>
 	<classpathentry kind="lib" path="external/deploy-13499.jar"/>
+	<classpathentry kind="lib" path="external/ipl-13559/ibis-util-2.2.jar"/>
+	<classpathentry kind="lib" path="external/ipl-13559/ipl-2.2.jar"/>
 	<classpathentry kind="output" path="build-eclipse"/>
 </classpath>
