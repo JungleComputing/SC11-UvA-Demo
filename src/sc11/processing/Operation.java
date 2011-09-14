@@ -1,5 +1,7 @@
 package sc11.processing;
 
+import java.util.Arrays;
+
 import org.gridlab.gat.GAT;
 import org.gridlab.gat.io.File;
 
@@ -115,13 +117,14 @@ public class Operation extends Activity {
             results[0] = res;
 
             if (res.success()) {
-
-                System.out.println("Operation " + id + " submitting SEQUENCE");
-
-                if (ops != null && ops.length > 0) { 
+                if (ops != null && ops.length > 0) {
+                    
+                	System.out.println("Operation " + id + " submitting SEQUENCE " + Arrays.toString(ops));
+                	
                 	state = STATE_FILTER;
                     executor.submit(new Sequence(identifier(), id, ops));
                 	suspend();
+                	
                 } else { 
                 	state = STATE_COPY_OUT;
 

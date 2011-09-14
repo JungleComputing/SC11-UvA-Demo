@@ -10,8 +10,8 @@ import ibis.constellation.ActivityContext;
 import ibis.util.RunProcess;
 
 public class Script implements Serializable {
-
-    /** Generated */
+    
+	/** Generated */
     private static final long serialVersionUID = -5809701669382342293L;
 
     public final ActivityContext context;
@@ -57,4 +57,10 @@ public class Script implements Serializable {
 
         return r;
     }
+    
+    @Override
+	public String toString() {
+		return "Script [context=" + context + ", script=" + script + ", input="
+				+ input + ", output=" + output + "]";
+	}
 }
