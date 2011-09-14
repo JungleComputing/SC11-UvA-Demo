@@ -3,11 +3,15 @@ package sc11.shared;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class FilterSequence {
+public class FilterSequence implements Serializable {
 
+	/** Generated */
+	private static final long serialVersionUID = -7475092282914188748L;
+	
 	public final String inputDir;
     public final String inputSuffix;
     public final String outputDir;
