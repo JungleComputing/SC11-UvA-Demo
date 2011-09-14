@@ -41,7 +41,9 @@ public class Daemon {
     	final ibis.deploy.Job master;
     	final ibis.deploy.Job slaves;
     	
-    	final Result result = new Result();
+    	Result result = null;
+    	
+    	boolean done = false;
     	
     	ProcessingJob(long id, FilterSequence work, 
     			ibis.deploy.Job master, ibis.deploy.Job slaves) { 
@@ -51,12 +53,20 @@ public class Daemon {
     		this.slaves = slaves;    		
     	}
     	
-		public void setStatus(String status) {
-			result.setState(status);
+		public synchronized void setStatus(Result result) {
+			this.result = result;
 		}
-
-		public void setResult(Result result) {
-			result.copy(result);
+		
+		public synchronized Result applicationState() { 
+			return result;
+		}
+		
+		public synchronized void done() { 
+			done = true;
+		}
+		
+		public synchronized boolean isDone() { 
+			return done;
 		}
     }
 
@@ -248,6 +258,8 @@ public class Daemon {
     			e.printStackTrace(System.err);
     		}
     	}
+    	
+    	removeJob(job.id);
     }
     
     public Result info(long id) {
@@ -258,45 +270,32 @@ public class Daemon {
             return new Result().failed("Unknown job id: " + id);
         }
         
-        if (job.slaves != null) { 
-        	State m = job.master.getState();
-        	State s = job.slaves.getState();
-
-        	if (m == State.DONE && s == State.DONE) {
-        		removeJob(id);
-        		return new Result().copy(job.result);
-        	}
-
-        	if (m == State.ERROR || s == State.ERROR) {
-        		removeJob(id);        	
-        		terminateJob(job);        	
-        		return new Result().failed(job.result.getError());
-        	}
-        	
-        	if (m == State.DEPLOYED && s == State.DEPLOYED) {
-        		return new Result().copy(job.result);
-        	}
-
-            return new Result().setState(m.name() + " | " + s.name());
-        } else { 
-        	State m = job.master.getState();
-
-        	if (m == State.DONE) { 
-        		removeJob(id);
-        		return new Result().copy(job.result);
-        	}
+        Result tmp = job.applicationState();
         
-        	if (m == State.ERROR) {
-        		removeJob(id);        	
-        		return new Result().failed(job.result.getError());
+        if (tmp == null) { 
+        	// Job is still staging in/out or has failed!
+        	State m = job.master.getState();
+        	State s = job.slaves == null ? null : job.slaves.getState();
+        	
+        	if (m == State.DONE || m == State.ERROR) {
+        		terminateJob(job);        	
+        		return new Result().failed("Job terminated unexpectedly!");
         	}
 
-        	if (m == State.DEPLOYED) {
-        		return new Result().copy(job.result);
-        	}
-
-        	return new Result().setState(m.name());
+        	if (s != null && (s == State.DONE || s == State.ERROR)) {
+            	terminateJob(job);        	
+            	return new Result().failed("Job terminated unexpectedly!");
+            }
+        	
+        	return new Result().setState("DEPLOYMENT STATE: " + m.name() + 
+        			(s == null ? "" : (" | " + s.name())));
+        } 
+        
+        if (job.isDone()) { 
+        	removeJob(id);
         }
+        
+        return tmp;
     }
 
     public static void fatal(String message) {
@@ -328,9 +327,9 @@ public class Daemon {
 		return p.work;
 	}
 
-	public void setStatus(long id, String status) {
+	public void setStatus(long id, Result res) {
 		
-		System.out.println("Set status for [" + id + "]: " + status);
+		System.out.println("Set status for [" + id + "]: " + res);
 		
 		ProcessingJob p = getJob(id);
 		
@@ -338,12 +337,12 @@ public class Daemon {
 			return; 
 		}
 		
-		p.setStatus(status);
+		p.setStatus(res);
 	}
 
-	public void done(long id, Result result) {
+	public void done(long id) {
 
-		System.out.println("Set result for [" + id + "]: " + result);
+		System.out.println("Work done for [" + id + "]");
 
 		ProcessingJob p = getJob(id);
 		
@@ -351,7 +350,7 @@ public class Daemon {
 			return; 
 		}
 		
-		p.setResult(result);
+		p.done();
 	}
     
     public static void main(String [] args) {

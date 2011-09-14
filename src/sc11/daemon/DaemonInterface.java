@@ -14,8 +14,8 @@ public interface DaemonInterface {
 	public FilterSequence getWork(long id) throws RemoteException, Exception;
 	
 	// Send a status update to the daemon
-	public void setStatus(long id, String status) throws RemoteException, Exception;
+	public void setStatus(long id, Result res) throws RemoteException, Exception;
 
 	// Tell the daemon we are done
-	public void done(long id, Result result) throws RemoteException, Exception;
+	public void done(long id) throws RemoteException, Exception;
 }

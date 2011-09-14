@@ -129,17 +129,14 @@ public class Main {
         			
         			System.out.println("Current state: " + res.getState());
         			
-        			if (!res.finished()) { 
-        				daemon.setStatus(id, res.getState());
-        			}         			
+        			daemon.setStatus(id, res);
+
         		} while (!res.finished());
-        
-        		m.done();
         		
-        		daemon.done(id, res);
-        		
+        		daemon.done(id);
         		myIbis.end();
-        		
+
+        		m.done();        		
            } else { 
         		Slave s = new Slave(executors);
         		s.run();

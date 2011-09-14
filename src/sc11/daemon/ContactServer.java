@@ -112,13 +112,13 @@ public class ContactServer implements RegistryEventHandler, DaemonInterface {
 	}
 
 	@Override
-	public void setStatus(long id, String status) throws RemoteException, Exception {
-		parent.setStatus(id, status);		
+	public void setStatus(long id, Result res) throws RemoteException, Exception {
+		parent.setStatus(id, res);		
 	}
 
 	@Override
-	public void done(long id, Result result) throws RemoteException, Exception {
-		parent.done(id, result);
+	public void done(long id) throws RemoteException, Exception {
+		parent.done(id);
 	}
 
 	/** End of DaemonInterface **/
