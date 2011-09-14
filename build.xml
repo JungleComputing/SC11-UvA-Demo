@@ -18,6 +18,9 @@
 		<fileset dir="./external/${gat}/lib">
 			<include name="**/*.jar" />
 		</fileset>
+		<fileset dir="./external/${ipl}">
+			<include name="*.jar" />
+		</fileset>
 	</path>
 
 	<target name="compile-application">
