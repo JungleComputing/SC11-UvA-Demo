@@ -6,7 +6,7 @@
 	<property name="client-jar" value="sc11-client-${version}.jar" />
 
 	<property name="gat" value="JavaGAT-2.1.1" />
-	<property name="ipl" value="ipl-2.2" />
+	<property name="ipl" value="ipl-13559" />
 	<property name="deploy" value="deploy-13499" />
 	<property name="constellation" value="constellation-0.7.0" />
 
@@ -41,7 +41,7 @@
 		<fileset dir="./external">
 			<include name="${deploy}.jar" />
 		</fileset>
-		<fileset dir="./external/${ipl}/lib">
+		<fileset dir="./external/${ipl}">
 			<include name="*.jar" />
 		</fileset>
 	</path>
@@ -88,18 +88,18 @@
 	        <mkdir dir="distribution/sc11-demo" />
 	        <mkdir dir="distribution/sc11-demo/tmp" />
 	        <mkdir dir="distribution/sc11-demo/lib" />
-	        <mkdir dir="distribution/sc11-demo/lib/${gat}" />
-	        <mkdir dir="distribution/sc11-demo/lib/${ipl}" />
+	        <mkdir dir="distribution/sc11-demo/lib/javagat" />
+	        <mkdir dir="distribution/sc11-demo/lib/ipl" />
 
         	<!-- Copy various dirs to distribution directory -->
-	        <copy todir="distribution/sc11-demo/lib/${gat}">
+	        <copy todir="distribution/sc11-demo/lib/javagat">
 		        <fileset dir="external/${gat}/lib">
 	                  <include name="**/*"/>	
                         </fileset>
 		</copy>
-	        <copy todir="distribution/sc11-demo/lib/${ipl}">
-		        <fileset dir="external/${ipl}/lib">
-	                  <include name="**/*"/>	
+	        <copy todir="distribution/sc11-demo/lib/ipl">
+		        <fileset dir="external/${ipl}">
+	                  <include name="*.jar"/>	
                         </fileset>
 		</copy>
 
