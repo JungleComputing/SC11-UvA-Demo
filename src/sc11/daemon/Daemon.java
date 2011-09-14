@@ -181,6 +181,7 @@ public class Daemon {
 
         if (job.filters != null && job.filters.length > 0) {
             for (int i=0;i<job.filters.length;i++) {
+            	arg.add("--filter");
                 arg.add(job.filters[i]);
             }
         }
