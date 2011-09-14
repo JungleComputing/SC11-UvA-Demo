@@ -120,9 +120,9 @@ public class Daemon {
     
     public long exec(FilterSequence job) throws Exception {
 
-        // First we get an unique ID.
+    	// First we get an unique ID.
         long id = getID();
-
+    	
         // Next, we extract some information about the job
         int workers = defaultSize;
 
@@ -136,6 +136,9 @@ public class Daemon {
             site = job.site;
         }
 
+        System.out.println("Daemon executing Job [" + id + "] on " + site + "/" 
+        		+ workers + " : " + job);
+        
         // Next retrieve the cluster we will run on.
         Cluster cluster = grid.getCluster(site);
 
