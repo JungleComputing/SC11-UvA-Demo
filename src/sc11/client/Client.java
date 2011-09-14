@@ -3,7 +3,7 @@ package sc11.client;
 import java.util.ArrayList;
 
 import sc11.shared.FilterSequence;
-import sc11.shared.Stub;
+import sc11.shared.DaemonStub;
 
 public class Client {
 
@@ -36,7 +36,7 @@ public class Client {
         	
             System.out.println("Read FilterSequence: " + job);
             
-            Stub s = new Stub(daemon, port);
+            DaemonStub s = new DaemonStub(daemon, port);
             long id = s.exec(job);
 
             String result = null;

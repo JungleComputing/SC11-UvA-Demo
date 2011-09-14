@@ -297,7 +297,7 @@ public class Daemon {
 
         try {
             Daemon d = new Daemon(grid, size, site, verbose);
-            Proxy p = new Proxy(d, port);
+            DaemonProxy p = new DaemonProxy(d, port);
 
             System.out.println("Daemon waiting for input!");
 

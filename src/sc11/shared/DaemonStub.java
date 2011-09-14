@@ -8,14 +8,14 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class Stub {
+public class DaemonStub {
 
     private Socket s;
 
     private DataInputStream in;
     private DataOutputStream out;
 
-    public Stub(String host, int port) throws UnknownHostException, IOException {
+    public DaemonStub(String host, int port) throws UnknownHostException, IOException {
 
         s = new Socket(host, port);
 

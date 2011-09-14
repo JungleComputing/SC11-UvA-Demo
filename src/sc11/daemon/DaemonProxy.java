@@ -13,7 +13,7 @@ import sc11.processing.Result;
 import sc11.shared.FilterSequence;
 import sc11.shared.Protocol;
 
-public class Proxy extends Thread {
+public class DaemonProxy extends Thread {
 
     private final ServerSocket ss;
     private final Daemon master;
@@ -150,7 +150,7 @@ public class Proxy extends Thread {
         }
     }
 
-    public Proxy(Daemon master, int port) throws IOException {
+    public DaemonProxy(Daemon master, int port) throws IOException {
         this.master = master;
         ss = new ServerSocket(port);
     }
