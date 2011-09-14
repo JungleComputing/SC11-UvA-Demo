@@ -4,10 +4,11 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class FilterSequence {
 
-    public final String inputDir;
+	public final String inputDir;
     public final String inputSuffix;
     public final String outputDir;
 
@@ -82,14 +83,25 @@ public class FilterSequence {
         out.writeInt(job.nodes);
     }
 
+    @Override
+	public String toString() {
+		return "FilterSequence [inputDir=" + inputDir + ", inputSuffix="
+				+ inputSuffix + ", outputDir=" + outputDir + ", filters="
+				+ Arrays.toString(filters) + ", site=" + site + ", nodes="
+				+ nodes + "]";
+	}
+    
     public static FilterSequence fromArguments(String [] args) throws Exception { 
     	
         String inputURI = null;
         String outputURI = null;
         String inputFileType = null;
-
+        String site = null;
+        
+        int nodes = -1;
+        
         ArrayList<String> filters = new ArrayList<String>();
-
+        
         for (int i=0;i<args.length;i++) {
 
             if (args[i].equals("--inputURI")) {
@@ -100,7 +112,12 @@ public class FilterSequence {
                 inputFileType = args[++i];
             } else if (args[i].equals("--filter")) {
                 filters.add(args[++i]);
-            } // NOTE: skip everything we don't know
+            } else if (args[i].equals("--site")) {
+                site = args[++i];
+            } else if (args[i].equals("--nodes")) {
+                nodes = Integer.parseInt(args[++i]); 
+            }             
+            // NOTE: skip everything we don't know
         }
 
         if (inputURI == null) {
@@ -116,8 +133,7 @@ public class FilterSequence {
         }
 
         String [] tmp = filters.toArray(new String[filters.size()]);
-        return new FilterSequence(inputURI, inputFileType, outputURI, tmp);
+        return new FilterSequence(inputURI, inputFileType, outputURI, tmp, 
+        		site, nodes);
     }
-    
-
 }
