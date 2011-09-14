@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import sc11.shared.FilterSequence;
 import sc11.shared.DaemonStub;
+import sc11.shared.Result;
 
 public class Client {
 
@@ -39,19 +40,27 @@ public class Client {
             DaemonStub s = new DaemonStub(daemon, port);
             long id = s.exec(job);
 
-            String result = null;
-
-            while (result == null) {
-                try {
+            boolean done = false;
+            
+            Result result = null;
+            
+            while (!done) { 
+            	try {
                     Thread.sleep(100);
-                    result = s.info(id);
+                    result = s.info(id);                    
+                    System.out.println("Current state: " + result.getState());                    
+                    done = result.finished();                    
                 } catch (Exception e) {
-                    result = "Operation failed: " + e.getMessage();
-                }
+                	System.out.println("Operation failed: " + e.getMessage());
+                	done = true;
+                }            	
+            } 
+
+            if (result != null) { 
+            	System.out.println("Result:\n" + result.getOuput() + "\n" + 
+            			result.getError());
             }
-
-            System.out.println("Result was:\n" + result);
-
+            
             s.close();
 
         } catch (Exception e) {

@@ -42,7 +42,7 @@ public class DaemonStub {
         }
     }
 
-    public String info(long id) throws IOException {
+    public Result info(long id) throws IOException {
 
         out.write(Protocol.OPCODE_INFO);
         out.writeLong(id);
@@ -55,12 +55,11 @@ public class DaemonStub {
         case -1:
             throw new IOException("Connection lost!");
         case Protocol.OPCODE_RUNNING:
-            System.out.println("Current state: " + in.readUTF());
-            return null;
+        	return new Result().setState(in.readUTF());
         case Protocol.OPCODE_DONE:
-            return in.readUTF();
+        	return new Result().success(in.readUTF());
         case Protocol.OPCODE_ERROR:
-            throw new IOException(in.readUTF());
+        	return new Result().failed(in.readUTF());
         default:
             throw new IOException("Unexpected reply! " + opcode);
         }
