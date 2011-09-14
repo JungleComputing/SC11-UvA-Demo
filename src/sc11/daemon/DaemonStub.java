@@ -1,4 +1,4 @@
-package sc11.shared;
+package sc11.daemon;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -7,6 +7,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+
+import sc11.shared.FilterSequence;
+import sc11.shared.Result;
 
 public class DaemonStub {
 

@@ -1,7 +1,7 @@
 package sc11.client;
 
+import sc11.daemon.DaemonStub;
 import sc11.shared.FilterSequence;
-import sc11.shared.DaemonStub;
 import sc11.shared.Result;
 
 public class Client {

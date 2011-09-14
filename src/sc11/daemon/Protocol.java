@@ -1,4 +1,4 @@
-package sc11.shared;
+package sc11.daemon;
 
 public interface Protocol {
 

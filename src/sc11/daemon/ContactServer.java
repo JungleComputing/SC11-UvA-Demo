@@ -11,7 +11,6 @@ import ibis.ipl.util.rpc.RemoteObject;
 
 import java.util.Properties;
 
-import sc11.shared.DaemonInterface;
 import sc11.shared.FilterSequence;
 import sc11.shared.Result;
 
@@ -42,7 +41,7 @@ public class ContactServer implements RegistryEventHandler, DaemonInterface {
 		myIbis.registry().elect("ContactServer");
 		
 		// Make this object remotely accessible
-		remoteObject = RPC.exportObject(DaemonInterface.class, this, "Contact", myIbis);
+		remoteObject = RPC.exportObject(DaemonInterface.class, this, "ContactServer", myIbis);
 		
 		System.out.println("Ibis Contact created!");
 		

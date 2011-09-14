@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import sc11.shared.DaemonInterface;
+import sc11.daemon.DaemonInterface;
 import sc11.shared.FilterSequence;
 import sc11.shared.Result;
 

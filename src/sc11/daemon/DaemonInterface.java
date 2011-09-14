@@ -1,5 +1,7 @@
-package sc11.shared;
+package sc11.daemon;
 
+import sc11.shared.FilterSequence;
+import sc11.shared.Result;
 import ibis.ipl.util.rpc.RemoteException;
 
 /** 
