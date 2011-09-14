@@ -66,6 +66,15 @@ public class Result implements Serializable {
         return error;
     }
 
+    public synchronized Result copy(Result other) {
+    	finished = other.finished;
+    	success = other.success;
+        state = other.state;
+        output = other.output;
+        error = other.output;
+        return this;
+    }
+    
     public static Result merge(Result [] results) {
 
         StringBuilder out = new StringBuilder();

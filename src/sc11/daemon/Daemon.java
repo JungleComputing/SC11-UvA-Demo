@@ -41,6 +41,8 @@ public class Daemon {
     	final ibis.deploy.Job master;
     	final ibis.deploy.Job slaves;
     	
+    	final Result result = new Result();
+    	
     	ProcessingJob(long id, FilterSequence work, 
     			ibis.deploy.Job master, ibis.deploy.Job slaves) { 
     		this.id = id;
@@ -49,9 +51,13 @@ public class Daemon {
     		this.slaves = slaves;    		
     	}
     	
-    	ProcessingJob(long id, FilterSequence work, ibis.deploy.Job master) { 
-    		this(id, work, master, null);
-    	}
+		public void setStatus(String status) {
+			result.setState(status);
+		}
+
+		public void setResult(Result result) {
+			result.copy(result);
+		}
     }
 
     private HashMap<Long, ProcessingJob> jobs =
@@ -251,20 +257,24 @@ public class Daemon {
         if (job == null) {
             return new Result().failed("Unknown job id: " + id);
         }
-
+        
         if (job.slaves != null) { 
         	State m = job.master.getState();
         	State s = job.slaves.getState();
 
         	if (m == State.DONE && s == State.DONE) {
         		removeJob(id);
-        		return new Result().success("");
+        		return new Result().copy(job.result);
         	}
 
         	if (m == State.ERROR || s == State.ERROR) {
         		removeJob(id);        	
         		terminateJob(job);        	
-        		return new Result().failed("");
+        		return new Result().failed(job.result.getError());
+        	}
+        	
+        	if (m == State.DEPLOYED && s == State.DEPLOYED) {
+        		return new Result().copy(job.result);
         	}
 
             return new Result().setState(m.name() + " | " + s.name());
@@ -273,15 +283,19 @@ public class Daemon {
 
         	if (m == State.DONE) { 
         		removeJob(id);
-        		return new Result().success("");
+        		return new Result().copy(job.result);
         	}
         
         	if (m == State.ERROR) {
         		removeJob(id);        	
-        		return new Result().failed("");
+        		return new Result().failed(job.result.getError());
         	}
 
-            return new Result().setState(m.name());
+        	if (m == State.DEPLOYED) {
+        		return new Result().copy(job.result);
+        	}
+
+        	return new Result().setState(m.name());
         }
     }
 
@@ -300,6 +314,40 @@ public class Daemon {
         System.exit(1);
     }
 
+
+	public FilterSequence getWork(long id) throws Exception {
+		
+		ProcessingJob p = getJob(id);
+		
+		if (p == null) { 
+			throw new Exception("Job " + id + " not found!"); 
+		}
+		
+		return p.work;
+	}
+
+	public void setStatus(long id, String status) {
+		
+		ProcessingJob p = getJob(id);
+		
+		if (p == null) { 
+			return; 
+		}
+		
+		p.setStatus(status);
+	}
+
+	public void done(long id, Result result) {
+
+		ProcessingJob p = getJob(id);
+		
+		if (p == null) { 
+			return; 
+		}
+		
+		p.setResult(result);
+	}
+    
     public static void main(String [] args) {
 
         int port = 54672;
@@ -342,20 +390,4 @@ public class Daemon {
             fatal("Daemon died!", e);
         }
     }
-
-	public FilterSequence getWork(long id) {
-		
-		
-		
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public void setStatus(long id, String status) {
-		// TODO Auto-generated method stub
-	}
-
-	public void done(long id, Result result) {
-		// TODO Auto-generated method stub
-	}
 }
