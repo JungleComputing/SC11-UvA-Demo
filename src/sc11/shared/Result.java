@@ -3,8 +3,8 @@ package sc11.shared;
 import java.io.Serializable;
 
 public class Result implements Serializable {
-
-    /** Generated */
+    
+	/** Generated */
     private static final long serialVersionUID = -8163724771958330288L;
 
     private boolean finished = false;
@@ -74,6 +74,13 @@ public class Result implements Serializable {
         error = other.output;
         return this;
     }
+    
+    @Override
+	public String toString() {
+		return "Result [finished=" + finished + ", success=" + success
+				+ ", state=" + state + ", output=" + output + ", error="
+				+ error + "]";
+	}
     
     public static Result merge(Result [] results) {
 

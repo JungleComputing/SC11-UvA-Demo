@@ -316,17 +316,21 @@ public class Daemon {
 
 
 	public FilterSequence getWork(long id) throws Exception {
-		
+				
 		ProcessingJob p = getJob(id);
 		
 		if (p == null) { 
 			throw new Exception("Job " + id + " not found!"); 
 		}
 		
+		System.out.println("Get work for [" + id + "]: " + p.work);
+		
 		return p.work;
 	}
 
 	public void setStatus(long id, String status) {
+		
+		System.out.println("Set status for [" + id + "]: " + status);
 		
 		ProcessingJob p = getJob(id);
 		
@@ -338,6 +342,8 @@ public class Daemon {
 	}
 
 	public void done(long id, Result result) {
+
+		System.out.println("Set result for [" + id + "]: " + result);
 
 		ProcessingJob p = getJob(id);
 		
