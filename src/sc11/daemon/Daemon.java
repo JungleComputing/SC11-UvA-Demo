@@ -191,9 +191,6 @@ public class Daemon {
         Application m = createApplication("SC11-Master", libs, config, tmpDir, 
         		scriptDir, "true", "master", args);
         
-        Application s = createApplication("SC11-Slave", libs, config, tmpDir, 
-        		scriptDir, "false", "slave:2,gpu", new String [] { "--slave" });
-        
         JobDescription jm = new JobDescription("SC11-Master-" + id);
         experiment.addJob(jm);
 
@@ -206,20 +203,30 @@ public class Daemon {
         
         ibis.deploy.Job master = deploy.submitJob(jm, m, cluster, null, null);
         
-        JobDescription js = new JobDescription("SC11-Slave-" + id);
-        experiment.addJob(js);
-
-        js.getCluster().setName(site);
-        js.setProcessCount(workers);
-        js.setResourceCount(workers);
-        js.setRuntime(60);
-        js.getApplication().setName("SC11-Slave");
-        js.setPoolName("SC11-" + id);
-
-        jm.getApplication().setArguments(new String[] {"--slave"});
-        ibis.deploy.Job slaves = deploy.submitJob(js, s, cluster, null, null);
+        // Only submit the slaves if there is some processing to be done.         
+        if (job.filters != null && job.filters.length > 0) {
+        	Application s = createApplication("SC11-Slave", libs, config, 
+        			tmpDir, scriptDir, "false", "slave:2,gpu", 
+        			new String [] { "--slave" });
         
-        addJob(new ProcessingJob(id, master, slaves));
+        	JobDescription js = new JobDescription("SC11-Slave-" + id);
+        	experiment.addJob(js);
+
+        	js.getCluster().setName(site);
+        	js.setProcessCount(workers);
+        	js.setResourceCount(workers);
+        	js.setRuntime(60);
+        	js.getApplication().setName("SC11-Slave");
+        	js.setPoolName("SC11-" + id);
+
+        	jm.getApplication().setArguments(new String[] {"--slave"});
+        	ibis.deploy.Job slaves = deploy.submitJob(js, s, cluster, null, null);
+        
+        	addJob(new ProcessingJob(id, master, slaves));
+        } else {
+        	addJob(new ProcessingJob(id, master, null));            
+        } 
+
         return id;
     }
 
