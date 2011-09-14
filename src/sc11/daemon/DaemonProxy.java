@@ -36,6 +36,8 @@ public class DaemonProxy extends Thread {
 
             FilterSequence job = FilterSequence.read(in);
 
+            System.out.println("PROXY read: " + job);
+            
             long id = -1;
             Exception ex = null;
 

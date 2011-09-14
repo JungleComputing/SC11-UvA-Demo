@@ -1,7 +1,5 @@
 package sc11.client;
 
-import java.util.ArrayList;
-
 import sc11.shared.FilterSequence;
 import sc11.shared.DaemonStub;
 import sc11.shared.Result;

@@ -25,6 +25,8 @@ public class DaemonStub {
 
     public long exec(FilterSequence job) throws IOException {
 
+        System.out.println("Stub write: " + job);
+    	
         out.write(Protocol.OPCODE_EXEC);
         FilterSequence.write(job, out);
         out.flush();
