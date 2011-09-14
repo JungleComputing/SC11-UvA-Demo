@@ -129,8 +129,9 @@ public class Main {
         			
         			System.out.println("Current state: " + res.getState());
         			
-        			daemon.setStatus(id, res.getState());
-        			
+        			if (!res.finished()) { 
+        				daemon.setStatus(id, res.getState());
+        			}         			
         		} while (!res.finished());
         
         		m.done();
