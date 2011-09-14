@@ -11,6 +11,7 @@ import ibis.constellation.context.UnitWorkerContext;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import sc11.shared.FilterSequence;
@@ -137,16 +138,22 @@ public class Master {
 
         if (fs.filters != null && fs.filters.length > 0) {
 
+        	System.out.println("Adding filter scripts:");
+        	
             scripts = new ScriptDescription[fs.filters.length];
 
             for (int i=0;i<fs.filters.length;i++) {
-
+            	
                 scripts[i] = descriptions.get(fs.filters[i]);
 
                 if (scripts[i] == null) {
                     throw new Exception("Operation not found: " + fs.filters[i]);
                 }
+                
+                System.out.println("   " + scripts[i]);
             }
+        } else { 
+         	System.out.println("No filter scripts added.");
         }
 
         BulkOperation o = new BulkOperation(this, id, fs.inputDir, 

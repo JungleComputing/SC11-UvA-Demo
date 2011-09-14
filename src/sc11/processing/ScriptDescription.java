@@ -1,5 +1,6 @@
 package sc11.processing;
 
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 import ibis.constellation.ActivityContext;
@@ -59,4 +60,10 @@ public class ScriptDescription {
     	
         return new Script(script, input, output, context);
     }
+
+	@Override
+	public String toString() {
+		return "ScriptDescription [operation=" + operation + ", script="
+				+ script + ", tags=" + Arrays.toString(tags) + "]";
+	}
 }
