@@ -112,7 +112,8 @@ public class Daemon {
             if (args != null && args.length > 0) { 
             	m.setArguments(args);
             }
-            applications.addApplication(m);
+            
+            //applications.addApplication(m);
         }
     	
         return m;
