@@ -51,7 +51,6 @@ public class Operation extends Activity {
             this.ops = null;
             this.firstTmp = this.lastTmp = generateTempFile(in.getName(), 0);
         } else {
-
             String [] tmp = new String[sd.length+1];
 
             for (int i=0;i<sd.length+1;i++) {
@@ -117,9 +116,22 @@ public class Operation extends Activity {
 
                 System.out.println("Operation " + id + " submitting SEQUENCE");
 
-                state = STATE_FILTER;
-                executor.submit(new Sequence(identifier(), id, ops));
-                suspend();
+                if (ops != null && ops.length > 0) { 
+                	state = STATE_FILTER;
+                    executor.submit(new Sequence(identifier(), id, ops));
+                	suspend();
+                } else { 
+                	state = STATE_COPY_OUT;
+
+                    File tmp = GAT.createFile("file:///" + 
+                    		LocalConfig.get().tmpdir + File.separator + lastTmp);
+                    
+                    System.out.println("Operation " + id + " submitting COPY_OUT " 
+                    		+ tmp + " -> " + out);
+                    
+                    executor.submit(new Copy(identifier(), id, tmp, out));
+                    suspend();
+                } 
             } else {
                 state = STATE_ERROR;
                 System.out.println("Operation " + id + 
