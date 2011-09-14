@@ -53,7 +53,7 @@ public class DaemonStub {
 
         switch (opcode) {
         case -1:
-            throw new IOException("Connection lost!");
+        	return new Result().failed("Connection to lost!");
         case Protocol.OPCODE_RUNNING:
         	return new Result().setState(in.readUTF());
         case Protocol.OPCODE_DONE:
@@ -61,7 +61,7 @@ public class DaemonStub {
         case Protocol.OPCODE_ERROR:
         	return new Result().failed(in.readUTF());
         default:
-            throw new IOException("Unexpected reply! " + opcode);
+        	return new Result().failed("Unexpected reply! " + opcode);
         }
     }
 

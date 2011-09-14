@@ -235,18 +235,68 @@ public class Daemon {
         return jobs.remove(id);
     }
 
+    private void terminateJob(ProcessingJob job) { 
+
+    	System.out.println("Terminating job " + job.id);
+    	
+    	if (!job.master.isFinished()) { 
+    		try { 
+    			job.master.kill();
+    		} catch (Exception e) {
+    			System.err.println("Failed to terminate master of " + job.id);
+    			e.printStackTrace(System.err);
+    		}
+    	}
+    	
+    	if (job.slaves != null && !job.slaves.isFinished()) { 
+    		try { 
+    			job.slaves.kill();
+    		} catch (Exception e) {
+    			System.err.println("Failed to terminate slaves of " + job.id);
+    			e.printStackTrace(System.err);
+    		}
+    	}
+    }
+    
     public Result info(long id) {
 
-    	ProcessingJob job = jobs.get(id);
+    	ProcessingJob job = getJob(id);
 
         if (job == null) {
             return new Result().failed("Unknown job id: " + id);
         }
 
-        State m = job.master.getState();
-        State s = job.slaves.getState();
+        if (job.slaves != null) { 
+        	State m = job.master.getState();
+        	State s = job.slaves.getState();
+
+        	if (m == State.DONE && s == State.DONE) {
+        		removeJob(id);
+        		return new Result().success("");
+        	}
         
-        return new Result().setState(m.name() + " | " + s.name());
+        	if (m == State.ERROR || s == State.ERROR) {
+        		removeJob(id);        	
+        		terminateJob(job);        	
+        		return new Result().failed("");
+        	}
+
+            return new Result().setState(m.name() + " | " + s.name());
+        } else { 
+        	State m = job.master.getState();
+
+        	if (m == State.DONE) { 
+        		removeJob(id);
+        		return new Result().success("");
+        	}
+        
+        	if (m == State.ERROR) {
+        		removeJob(id);        	
+        		return new Result().failed("");
+        	}
+
+            return new Result().setState(m.name());
+        }
     }
 
     public static void fatal(String message) {
