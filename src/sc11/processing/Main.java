@@ -6,6 +6,7 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 
 import sc11.shared.FilterSequence;
+import sc11.shared.Result;
 
 public class Main {
     

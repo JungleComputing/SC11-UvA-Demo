@@ -4,6 +4,8 @@ import org.gridlab.gat.GAT;
 import org.gridlab.gat.GATObjectCreationException;
 import org.gridlab.gat.io.File;
 
+import sc11.shared.Result;
+
 import ibis.constellation.Activity;
 import ibis.constellation.Event;
 import ibis.constellation.context.UnitActivityContext;

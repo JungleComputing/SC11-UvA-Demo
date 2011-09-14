@@ -3,6 +3,8 @@ package sc11.processing;
 import org.gridlab.gat.GAT;
 import org.gridlab.gat.io.File;
 
+import sc11.shared.Result;
+
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Event;

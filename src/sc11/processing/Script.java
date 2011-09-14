@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Arrays;
 
+import sc11.shared.Result;
+
 import ibis.constellation.ActivityContext;
 import ibis.util.RunProcess;
 

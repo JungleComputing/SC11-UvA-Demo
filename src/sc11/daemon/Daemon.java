@@ -4,8 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import sc11.processing.Result;
 import sc11.shared.FilterSequence;
+import sc11.shared.Result;
 
 import ibis.deploy.Application;
 import ibis.deploy.ApplicationSet;

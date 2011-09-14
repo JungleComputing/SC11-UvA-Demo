@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import sc11.shared.FilterSequence;
+import sc11.shared.Result;
 
 //import sc11.daemon.Proxy;
 

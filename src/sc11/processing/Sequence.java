@@ -1,5 +1,6 @@
 package sc11.processing;
 
+import sc11.shared.Result;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Event;

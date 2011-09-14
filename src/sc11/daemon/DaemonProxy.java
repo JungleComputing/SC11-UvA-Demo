@@ -9,9 +9,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
-import sc11.processing.Result;
 import sc11.shared.FilterSequence;
 import sc11.shared.Protocol;
+import sc11.shared.Result;
 
 public class DaemonProxy extends Thread {
 
