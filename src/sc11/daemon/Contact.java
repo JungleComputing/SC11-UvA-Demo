@@ -17,7 +17,8 @@ import ibis.ipl.RegistryEventHandler;
 public class Contact implements RegistryEventHandler, MessageUpcall {
 
 	private final IbisCapabilities capabilities = new IbisCapabilities(
-			IbisCapabilities.ELECTIONS_STRICT);
+			IbisCapabilities.ELECTIONS_STRICT, 
+			IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
 
 	public static final PortType portType = new PortType(
 			PortType.COMMUNICATION_RELIABLE, PortType.SERIALIZATION_OBJECT,
