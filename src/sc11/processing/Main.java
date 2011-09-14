@@ -1,15 +1,24 @@
 package sc11.processing;
 
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.util.rpc.RPC;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
+import sc11.shared.DaemonInterface;
 import sc11.shared.FilterSequence;
 import sc11.shared.Result;
 
 public class Main {
     
+	private static final IbisCapabilities capabilities = new IbisCapabilities(
+			IbisCapabilities.ELECTIONS_STRICT);
+	
 	private static String [] parseExecutorConfig(String config) { 
 		
 		StringTokenizer tok = new StringTokenizer(config, ",");
@@ -43,6 +52,18 @@ public class Main {
 		
 		return executors.toArray(new String[executors.size()]);
 	}
+
+	private static String getProperty(Properties p, String name) { 
+
+		String tmp = p.getProperty(name);
+
+        if (tmp == null) {
+            System.err.println("No " + name + " property specified!");
+            System.exit(1);
+        }
+		
+        return tmp;
+	}
 	
 	public static void main(String [] args) {        
 
@@ -50,52 +71,56 @@ public class Main {
      
         Properties p = System.getProperties();
         
-        String config = p.getProperty("sc11.config");
-
-        if (config == null) {
-            System.err.println("No sc11.conf property specified!");
-            System.exit(1);
-        }
-
-        String tmpdir = p.getProperty("sc11.tmpDir");
-
-        if (tmpdir == null) {
-            System.err.println("No sc11.tmpDir property specified!");
-            System.exit(1);
-        }
-
-        String scriptdir = p.getProperty("sc11.scriptDir");
+        String config    = getProperty(p, "sc11.config");
+        String tmpdir    = getProperty(p, "sc11.tmpDir");
+        String scriptdir = getProperty(p, "sc11.scriptDir");
+        String jobid     = getProperty(p, "sc11.ID");
+        String master    = getProperty(p, "ibis.constellation.master");
+        String adres     = getProperty(p, "ibis.server.address");
         
-        if (scriptdir == null) {
-            System.err.println("No sc11.scriptDir property specified!");
-            System.exit(1);
-        }
+        boolean isMaster = Boolean.parseBoolean(master);
         
-        /* For debugging */
-		System.out.println("Command line args: " + Arrays.toString(args));
-        System.out.println("  gat.adaptor.path=" + p.getProperty("gat.adaptor.path"));
-        /* End debugging */
+        long id = Long.parseLong(jobid);
         
-        String [] executors = parseExecutorConfig(p.getProperty("sc11.executors"));
+        String [] executors = parseExecutorConfig(getProperty(p, "sc11.executors"));
 		
         // Store some 'global' configuration
         LocalConfig.set(tmpdir, scriptdir);
 
         try { 
         
-        	if (args.length > 0 && args[0].equals("--master")) { 
-        
-        		FilterSequence f = FilterSequence.fromArguments(args);
-            
+        	if (isMaster) { 
+        		System.out.println("Creating Ibis ContactClient using server: " + adres);
+    			
+        		Properties prop = new Properties();
+        		prop.put("ibis.server.address", adres);
+        		prop.put("ibis.pool.name", "SC11-ContactServer");
+        					
+        		Ibis myIbis = IbisFactory.createIbis(capabilities, prop, false, null, RPC.rpcPortTypes);
+        		
+        		IbisIdentifier server = null; 
+        		
+        		while (server == null) {
+        			System.out.println("Attempting to find ContactServer....");			
+        			server = myIbis.registry().getElectionResult("ContactServer", 1000);
+        		} 
+        			
+        		// Create proxy to remote object
+        		DaemonInterface daemon = RPC.createProxy(DaemonInterface.class, server, "ContactServer", myIbis);
+        		
+        		System.out.println("Ibis ContactClient created!");
+        		
         		Master m = new Master(executors, config);
         		
-        		long id = m.exec(f);
+        		FilterSequence f = daemon.getWork(id);
+        		
+        		m.exec(f);
         		
         		Result res = null;
         		
         		do { 
         			try { 
-        				Thread.sleep(100);
+        				Thread.sleep(500);
         			} catch (Exception e) {
 						// ignored
 					}
@@ -104,9 +129,15 @@ public class Main {
         			
         			System.out.println("Current state: " + res.getState());
         			
+        			daemon.setStatus(id, res.getState());
+        			
         		} while (!res.finished());
         
         		m.done();
+        		
+        		daemon.done(id, res);
+        		
+        		myIbis.end();
         		
            } else { 
         		Slave s = new Slave(executors);

@@ -25,7 +25,7 @@ public class Daemon {
     private final Deploy deploy;
     // private final GUI gui;
     
-    private final Contact server;
+    private final ContactServer server;
     
     private final Grid grid;
     private final ApplicationSet applications;
@@ -37,13 +37,21 @@ public class Daemon {
 
     	final long id;
     	
+    	final FilterSequence work;
+    	
     	final ibis.deploy.Job master;
     	final ibis.deploy.Job slaves;
     	
-    	ProcessingJob(long id, ibis.deploy.Job master, ibis.deploy.Job slaves) { 
+    	ProcessingJob(long id, FilterSequence work, 
+    			ibis.deploy.Job master, ibis.deploy.Job slaves) { 
     		this.id = id;
+    		this.work = work;
     		this.master = master;
     		this.slaves = slaves;    		
+    	}
+    	
+    	ProcessingJob(long id, FilterSequence work, ibis.deploy.Job master) { 
+    		this(id, work, master, null);
     	}
     }
 
@@ -65,7 +73,7 @@ public class Daemon {
         deploy = new Deploy(new File("deploy-workspace"), verbose, false, 0, 
         		null, null, true);
 
-        server = new Contact(deploy.getServerAddress());
+        server = new ContactServer(this, deploy.getServerAddress());
         
         /*
         if (useGui) {
@@ -81,43 +89,32 @@ public class Daemon {
     }
 
     private Application createApplication(String name, String libs, 
-    		String config, String tmpDir, String scriptDir, String master, 
-    		String executors, String [] args) throws Exception { 
+    		String config, String tmpDir, String scriptDir, 
+    		String master, long id, String executors) throws Exception { 
     
-    	Application m = applications.getApplication(name);
+    	Application m = new Application(name);
+            
+    	// HACK: deploy demands libs to be set ?
+    	m.setLibs(new File("lib/dummy"));
+    	m.setMainClass("sc11.processing.Main");
+    	m.setMemorySize(1000);
+    	m.setLog4jFile(new File("log4j.properties"));
 
-        if (m == null) {
-            m = new Application(name);
-            
-            m.setLibs(new File("lib/sc11-application-0.2.0.jar"));
-            m.setMainClass("sc11.processing.Main");
-            m.setMemorySize(1000);
-            m.setLog4jFile(new File("log4j.properties"));
-       
-            m.setSystemProperty("gat.adaptor.path", libs + "JavaGAT-2.1.1" + 
-            		File.separator + "adaptors");
-                                         
-            m.setSystemProperty("ibis.constellation.master", master);
-            m.setSystemProperty("sc11.config", config);
-            m.setSystemProperty("sc11.tmpDir", tmpDir);
-            m.setSystemProperty("sc11.scriptDir", scriptDir);        
-                        
-            // FIXME: hardcoded executor config!
-            m.setSystemProperty("sc11.executors", executors);
-            
-            // FIXME: hardcoded version numbers!
-            m.setJVMOptions("-classpath", 
-            		libs + "sc11-application-0.2.0.jar:" +
-            		libs + "constellation-0.7.0.jar:" +            		
-            		libs + "JavaGAT-2.1.1" + File.separator + "*:" + 
-            		libs + "ipl-2.2" + File.separator + "*");
+    	m.setSystemProperty("gat.adaptor.path", libs + "javagat" + 
+    			File.separator + "adaptors");
 
-            if (args != null && args.length > 0) { 
-            	m.setArguments(args);
-            }
-            
-            //applications.addApplication(m);
-        }
+    	m.setSystemProperty("ibis.constellation.master", master);
+    	m.setSystemProperty("sc11.config", config);
+    	m.setSystemProperty("sc11.tmpDir", tmpDir);
+    	m.setSystemProperty("sc11.scriptDir", scriptDir);        
+    	m.setSystemProperty("sc11.ID", "" + id);        
+    	m.setSystemProperty("sc11.executors", executors);
+
+    	m.setJVMOptions("-classpath", 
+    			libs + "sc11-application-0.2.0.jar:" +
+    					libs + "constellation-0.7.0.jar:" +            		
+    					libs + "javagat" + File.separator + "*:" + 
+    					libs + "ipl" + File.separator + "*");
     	
         return m;
     }
@@ -172,28 +169,8 @@ public class Daemon {
     
     	String libs = location + File.separator + "lib" + File.separator;
                 
-        // Next retrieve/create a description of the application.
-        ArrayList<String> arg = new ArrayList<String>();
-
-        arg.add("--master");
-        arg.add("--inputURI");
-        arg.add(job.inputDir);
-        arg.add("--inputSuffix");
-        arg.add(job.inputSuffix);
-        arg.add("--outputURI");
-        arg.add(job.outputDir);
-
-        if (job.filters != null && job.filters.length > 0) {
-            for (int i=0;i<job.filters.length;i++) {
-            	arg.add("--filter");
-                arg.add(job.filters[i]);
-            }
-        }
-                
-        String [] args = arg.toArray(new String[arg.size()]);            
-    	
-        Application m = createApplication("SC11-Master", libs, config, tmpDir, 
-        		scriptDir, "true", "master", args);
+    	Application m = createApplication("SC11-Master", libs, config, tmpDir, 
+        		scriptDir, "true", id, "master");
         
         JobDescription jm = new JobDescription("SC11-Master-" + id);
         experiment.addJob(jm);
@@ -210,8 +187,7 @@ public class Daemon {
         // Only submit the slaves if there is some processing to be done.         
         if (job.filters != null && job.filters.length > 0) {
         	Application s = createApplication("SC11-Slave", libs, config, 
-        			tmpDir, scriptDir, "false", "slave:2,gpu", 
-        			new String [] { "--slave" });
+        			tmpDir, scriptDir, "false", id, "slave:2,gpu");
         
         	JobDescription js = new JobDescription("SC11-Slave-" + id);
         	experiment.addJob(js);
@@ -226,9 +202,9 @@ public class Daemon {
         	jm.getApplication().setArguments(new String[] {"--slave"});
         	ibis.deploy.Job slaves = deploy.submitJob(js, s, cluster, null, null);
         
-        	addJob(new ProcessingJob(id, master, slaves));
+        	addJob(new ProcessingJob(id, job, master, slaves));
         } else {
-        	addJob(new ProcessingJob(id, master, null));            
+        	addJob(new ProcessingJob(id, job, master, null));            
         } 
 
         return id;
@@ -285,7 +261,7 @@ public class Daemon {
         		removeJob(id);
         		return new Result().success("");
         	}
-        
+
         	if (m == State.ERROR || s == State.ERROR) {
         		removeJob(id);        	
         		terminateJob(job);        	
@@ -367,4 +343,20 @@ public class Daemon {
             fatal("Daemon died!", e);
         }
     }
+
+	public FilterSequence getWork(long id) {
+		
+		
+		
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void setStatus(long id, String status) {
+		// TODO Auto-generated method stub
+	}
+
+	public void done(long id, Result result) {
+		// TODO Auto-generated method stub
+	}
 }

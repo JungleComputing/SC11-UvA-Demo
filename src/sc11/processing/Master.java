@@ -53,7 +53,7 @@ public class Master {
         }
 
         constellation = ConstellationFactory.createConstellation(e);
-        constellation.activate();
+        constellation.activate();        
     }
 
     private synchronized long getID() {
