@@ -39,7 +39,7 @@ public class Operation extends Activity {
     private int state = STATE_INIT;
 
     public Operation(ActivityIdentifier parent, long id, File in,
-            ScriptDescription [] sd, File out) {
+            ScriptDescription [] sd, File out) throws Exception {
 
         super(new UnitActivityContext("master", id), true, true);
 
@@ -51,14 +51,33 @@ public class Operation extends Activity {
 
         this.results = new Result[3];
 
+        String cleanFileName = getFileNameWithoutExtension(in.getName());
+        String cleanExt = getFileExtension(in.getName());
+
         if (sd == null || sd.length == 0) {
             this.ops = null;
-            this.firstTmp = this.lastTmp = generateTempFile(in.getName(), 0);
+            this.firstTmp = this.lastTmp = generateTempFile(cleanFileName, 0, cleanExt);
         } else {
             String [] tmp = new String[sd.length+1];
 
+            String currentExt = cleanExt;
+
             for (int i=0;i<sd.length+1;i++) {
-                tmp[i] = generateTempFile(in.getName(), i);
+
+                String ins = sd[i].inSuffix;
+                String outs = sd[i].outSuffix;
+
+                if (!ins.equals("*") && !currentExt.equalsIgnoreCase(ins)) {
+                    throw new Exception("Script output mismatch! "
+                            + currentExt + " != " + ins);
+                }
+
+                if (outs.equals("*")) {
+                    tmp[i] = generateTempFile(cleanFileName, i, currentExt);
+                } else {
+                    tmp[i] = generateTempFile(cleanFileName, i, outs);
+                    currentExt = outs;
+                }
             }
 
             firstTmp = tmp[0];
@@ -72,8 +91,31 @@ public class Operation extends Activity {
         }
     }
 
-    private String generateTempFile(String filename, int count) {
-        return "TMP-" + id + "-" + count + "-" + filename;
+    private String generateTempFile(String clean, int count, String ext) {
+        return "TMP-" + count + "-" + clean + ext;
+    }
+
+
+    private String getFileExtension(String filename) {
+
+        int index = filename.lastIndexOf('.');
+
+        if (index <= 0) {
+            return "";
+        } else {
+            return filename.substring(index);
+        }
+    }
+
+    private String getFileNameWithoutExtension(String filename) {
+
+        int index = filename.lastIndexOf('.');
+
+        if (index <= 0) {
+            return filename;
+        } else {
+            return filename.substring(0, index);
+        }
     }
 
     @Override
@@ -93,12 +135,12 @@ public class Operation extends Activity {
 
         state = STATE_COPY_IN;
 
-        File tmp = GAT.createFile("file:///" + LocalConfig.get().tmpdir + 
-        		File.separator + firstTmp);
-        
-        System.out.println("Operation " + id + " submitting COPY_IN " + in + 
-        		" -> " + tmp);
-        
+        File tmp = GAT.createFile("file:///" + LocalConfig.get().tmpdir +
+                File.separator + firstTmp);
+
+        System.out.println("Operation " + id + " submitting COPY_IN " + in +
+                " -> " + tmp);
+
         executor.submit(new Copy(identifier(), id, in, tmp));
 
         suspend();
@@ -118,28 +160,28 @@ public class Operation extends Activity {
 
             if (res.success()) {
                 if (ops != null && ops.length > 0) {
-                    
-                	System.out.println("Operation " + id + " submitting SEQUENCE " + Arrays.toString(ops));
-                	
-                	state = STATE_FILTER;
-                    executor.submit(new Sequence(identifier(), id, ops));
-                	suspend();
-                	
-                } else { 
-                	state = STATE_COPY_OUT;
 
-                    File tmp = GAT.createFile("file:///" + 
-                    		LocalConfig.get().tmpdir + File.separator + lastTmp);
-                    
-                    System.out.println("Operation " + id + " submitting COPY_OUT " 
-                    		+ tmp + " -> " + out);
-                    
+                    System.out.println("Operation " + id + " submitting SEQUENCE " + Arrays.toString(ops));
+
+                    state = STATE_FILTER;
+                    executor.submit(new Sequence(identifier(), id, ops));
+                    suspend();
+
+                } else {
+                    state = STATE_COPY_OUT;
+
+                    File tmp = GAT.createFile("file:///" +
+                            LocalConfig.get().tmpdir + File.separator + lastTmp);
+
+                    System.out.println("Operation " + id + " submitting COPY_OUT "
+                            + tmp + " -> " + out);
+
                     executor.submit(new Copy(identifier(), id, tmp, out));
                     suspend();
-                } 
+                }
             } else {
                 state = STATE_ERROR;
-                System.out.println("Operation " + id + 
+                System.out.println("Operation " + id +
                      " FAILED: Failed to copy input file!\n" + res.getError());
                 finish();
             }
@@ -150,22 +192,22 @@ public class Operation extends Activity {
             results[1] = res;
 
             if (res.success()) {
-                
+
                 state = STATE_COPY_OUT;
 
-                File tmp = GAT.createFile("file:///" + 
-                		LocalConfig.get().tmpdir + File.separator + lastTmp);
-                
-                System.out.println("Operation " + id + " submitting COPY_OUT " 
-                		+ tmp + " -> " + out);
-                
+                File tmp = GAT.createFile("file:///" +
+                        LocalConfig.get().tmpdir + File.separator + lastTmp);
+
+                System.out.println("Operation " + id + " submitting COPY_OUT "
+                        + tmp + " -> " + out);
+
                 executor.submit(new Copy(identifier(), id, tmp, out));
 
                 suspend();
             } else {
                 state = STATE_ERROR;
-                System.out.println("Operation " + id + 
-                	   " FAILED: Failed to execute filter!\n" + res.getError());
+                System.out.println("Operation " + id +
+                       " FAILED: Failed to execute filter!\n" + res.getError());
                 finish();
             }
             break;
@@ -182,7 +224,7 @@ public class Operation extends Activity {
                 finish();
             } else {
                 state = STATE_ERROR;
-                System.out.println("Operation " + id + 
+                System.out.println("Operation " + id +
                      " FAILED: Failed to copy output file!\n" + res.getError());
                 finish();
             }
@@ -190,8 +232,8 @@ public class Operation extends Activity {
 
         default:
             state = STATE_ERROR;
-            System.out.println("Operation " + id + 
-            		" FAILED: Operation in illegal state! " + state);
+            System.out.println("Operation " + id +
+                    " FAILED: Operation in illegal state! " + state);
             finish();
         }
     }

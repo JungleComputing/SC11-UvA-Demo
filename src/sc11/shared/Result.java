@@ -3,8 +3,8 @@ package sc11.shared;
 import java.io.Serializable;
 
 public class Result implements Serializable {
-    
-	/** Generated */
+
+    /** Generated */
     private static final long serialVersionUID = -8163724771958330288L;
 
     private boolean finished = false;
@@ -67,21 +67,36 @@ public class Result implements Serializable {
     }
 
     public synchronized Result copy(Result other) {
-    	finished = other.finished;
-    	success = other.success;
+        finished = other.finished;
+        success = other.success;
         state = other.state;
         output = other.output;
         error = other.output;
         return this;
     }
-    
+
     @Override
-	public String toString() {
-		return "Result [finished=" + finished + ", success=" + success
-				+ ", state=" + state + ", output=" + output + ", error="
-				+ error + "]";
-	}
-    
+    public String toString() {
+        return "Result [finished=" + finished + ", success=" + success
+                + ", state=" + state + ", output=" + output + ", error="
+                + error + "]";
+    }
+
+    private static void append(StringBuilder out, String txt) {
+
+        if (txt != null) {
+            txt = txt.trim();
+
+            if (txt.length() > 0) {
+                out.append(txt);
+
+                if (!txt.endsWith("\n")) {
+                    out.append("\n");
+                }
+            }
+        }
+    }
+
     public static Result merge(Result [] results) {
 
         StringBuilder out = new StringBuilder();
@@ -92,12 +107,8 @@ public class Result implements Serializable {
         for (int i=0;i<results.length;i++) {
 
             if (results[i] != null) {
-                out.append(results[i].getOuput());
-                out.append("\n");
-
-                err.append(results[i].getError());
-                err.append("\n");
-
+                append(out, results[i].getOuput());
+                append(err, results[i].getError());
                 last = results[i];
             }
         }

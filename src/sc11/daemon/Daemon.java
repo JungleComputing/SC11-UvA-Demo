@@ -18,61 +18,61 @@ import ibis.deploy.Workspace;
 
 public class Daemon {
 
-	private final int defaultSize;
+    private final int defaultSize;
     private final String defaultSite;
 
     private final Deploy deploy;
     // private final GUI gui;
-    
+
     private final ContactServer server;
-    
+
     private final Grid grid;
     private final ApplicationSet applications;
     private final Experiment experiment;
 
     private long id = 0;
 
-    private class ProcessingJob { 
+    private class ProcessingJob {
 
-    	final long id;
-    	
-    	final FilterSequence work;
-    	
-    	final ibis.deploy.Job master;
-    	final ibis.deploy.Job slaves;
-    	
-    	Result result = null;
-    	
-    	boolean done = false;
-    	
-    	ProcessingJob(long id, FilterSequence work, 
-    			ibis.deploy.Job master, ibis.deploy.Job slaves) { 
-    		this.id = id;
-    		this.work = work;
-    		this.master = master;
-    		this.slaves = slaves;    		
-    	}
-    	
-		public synchronized void setStatus(Result result) {
-			this.result = result;
-		}
-		
-		public synchronized Result applicationState() { 
-			return result;
-		}
-		
-		public synchronized void done() { 
-			done = true;
-		}
-		
-		public synchronized boolean isDone() { 
-			return done;
-		}
+        final long id;
+
+        final FilterSequence work;
+
+        final ibis.deploy.Job master;
+        final ibis.deploy.Job slaves;
+
+        Result result = null;
+
+        boolean done = false;
+
+        ProcessingJob(long id, FilterSequence work,
+                ibis.deploy.Job master, ibis.deploy.Job slaves) {
+            this.id = id;
+            this.work = work;
+            this.master = master;
+            this.slaves = slaves;
+        }
+
+        public synchronized void setStatus(Result result) {
+            this.result = result;
+        }
+
+        public synchronized Result applicationState() {
+            return result;
+        }
+
+        public synchronized void done() {
+            done = true;
+        }
+
+        public synchronized boolean isDone() {
+            return done;
+        }
     }
 
     private HashMap<Long, ProcessingJob> jobs =
-    		new HashMap<Long, ProcessingJob>();
-    
+            new HashMap<Long, ProcessingJob>();
+
     public Daemon(String gridname, int size, String site, boolean verbose)
             throws Exception {
 
@@ -85,11 +85,11 @@ public class Daemon {
 
         Workspace workspace = new Workspace(grid, applications, experiment);
 
-        deploy = new Deploy(new File("deploy-workspace"), verbose, false, 0, 
-        		null, null, true);
+        deploy = new Deploy(new File("deploy-workspace"), verbose, false, 0,
+                null, null, true);
 
         server = new ContactServer(this, deploy.getServerAddress());
-        
+
         /*
         if (useGui) {
             gui = new GUI(deploy, workspace, Mode.MONITOR, logos);
@@ -103,42 +103,42 @@ public class Daemon {
         return id++;
     }
 
-    private Application createApplication(String name, String libs, 
-    		String config, String tmpDir, String scriptDir, 
-    		String master, long id, String executors) throws Exception { 
-    
-    	Application m = new Application(name);
-            
-    	// HACK: deploy demands libs to be set ?
-    	m.setLibs(new File("lib/dummy"));
-    	m.setMainClass("sc11.processing.Main");
-    	m.setMemorySize(1000);
-    	m.setLog4jFile(new File("log4j.properties"));
+    private Application createApplication(String name, String libs,
+            String config, String tmpDir, String scriptDir,
+            String master, long id, String executors) throws Exception {
 
-    	m.setSystemProperty("gat.adaptor.path", libs + "javagat" + 
-    			File.separator + "adaptors");
+        Application m = new Application(name);
 
-    	m.setSystemProperty("ibis.constellation.master", master);
-    	m.setSystemProperty("sc11.config", config);
-    	m.setSystemProperty("sc11.tmpDir", tmpDir);
-    	m.setSystemProperty("sc11.scriptDir", scriptDir);        
-    	m.setSystemProperty("sc11.ID", "" + id);        
-    	m.setSystemProperty("sc11.executors", executors);
+        // HACK: deploy demands libs to be set ?
+        m.setLibs(new File("lib/dummy"));
+        m.setMainClass("sc11.processing.Main");
+        m.setMemorySize(1000);
+        m.setLog4jFile(new File("log4j.properties"));
 
-    	m.setJVMOptions("-classpath", 
-    			libs + "sc11-application-0.2.0.jar:" +
-    					libs + "constellation-0.7.0.jar:" +            		
-    					libs + "javagat" + File.separator + "*:" + 
-    					libs + "ipl" + File.separator + "*");
-    	
+        m.setSystemProperty("gat.adaptor.path", libs + "javagat" +
+                File.separator + "adaptors");
+
+        m.setSystemProperty("ibis.constellation.master", master);
+        m.setSystemProperty("sc11.config", config);
+        m.setSystemProperty("sc11.tmpDir", tmpDir);
+        m.setSystemProperty("sc11.scriptDir", scriptDir);
+        m.setSystemProperty("sc11.ID", "" + id);
+        m.setSystemProperty("sc11.executors", executors);
+
+        m.setJVMOptions("-classpath",
+                libs + "sc11-application-0.2.0.jar:" +
+                        libs + "constellation-0.7.0.jar:" +
+                        libs + "javagat" + File.separator + "*:" +
+                        libs + "ipl" + File.separator + "*");
+
         return m;
     }
-    
+
     public long exec(FilterSequence job) throws Exception {
 
-    	// First we get an unique ID.
+        // First we get an unique ID.
         long id = getID();
-    	
+
         // Next, we extract some information about the job
         int workers = defaultSize;
 
@@ -152,9 +152,9 @@ public class Daemon {
             site = job.site;
         }
 
-        System.out.println("Daemon executing Job [" + id + "] on " + site + "/" 
-        		+ workers + " : " + job);
-        
+        System.out.println("Daemon executing Job [" + id + "] on " + site + "/"
+                + workers + " : " + job);
+
         // Next retrieve the cluster we will run on.
         Cluster cluster = grid.getCluster(site);
 
@@ -163,30 +163,30 @@ public class Daemon {
                     "description file.");
         }
 
-        // Get some info from the cluster.              
+        // Get some info from the cluster.
         String location = cluster.getProperties().getProperty("sc11.location");
 
         if (location == null) {
             throw new Exception("sc11.location property not set for cluster \""
                     + site + "\" in grid description file.");
         }
-        
+
         String tmpDir = cluster.getProperties().getProperty("sc11.tmp");
 
         if (tmpDir == null) {
-        	tmpDir = location + File.separator + "tmp";
+            tmpDir = location + File.separator + "tmp";
         }
-        
-        String config = location + File.separator + "scripts" + 
-        		File.separator + "configuration";
-        
-    	String scriptDir = location + File.separator + "scripts";
-    
-    	String libs = location + File.separator + "lib" + File.separator;
-                
-    	Application m = createApplication("SC11-Master", libs, config, tmpDir, 
-        		scriptDir, "true", id, "master");
-        
+
+        String config = location + File.separator + "scripts" +
+                File.separator + "configuration";
+
+        String scriptDir = location + File.separator + "scripts";
+
+        String libs = location + File.separator + "lib" + File.separator;
+
+        Application m = createApplication("SC11-Master", libs, config, tmpDir,
+                scriptDir, "true", id, "master");
+
         JobDescription jm = new JobDescription("SC11-Master-" + id);
         experiment.addJob(jm);
 
@@ -196,31 +196,31 @@ public class Daemon {
         jm.setRuntime(60);
         jm.getApplication().setName("SC11-Master");
         jm.setPoolName("SC11-" + id);
-        
+
         ibis.deploy.Job master = deploy.submitJob(jm, m, cluster, null, null);
-        
-        // Only submit the slaves if there is some processing to be done.         
+
+        // Only submit the slaves if there is some processing to be done.
         if (job.filters != null && job.filters.length > 0) {
-        	Application s = createApplication("SC11-Slave", libs, config, 
-        			tmpDir, scriptDir, "false", id, "slave:2,gpu");
-        
-        	JobDescription js = new JobDescription("SC11-Slave-" + id);
-        	experiment.addJob(js);
+            Application s = createApplication("SC11-Slave", libs, config,
+                    tmpDir, scriptDir, "false", id, "slave:2,gpu");
 
-        	js.getCluster().setName(site);
-        	js.setProcessCount(workers);
-        	js.setResourceCount(workers);
-        	js.setRuntime(60);
-        	js.getApplication().setName("SC11-Slave");
-        	js.setPoolName("SC11-" + id);
+            JobDescription js = new JobDescription("SC11-Slave-" + id);
+            experiment.addJob(js);
 
-        	jm.getApplication().setArguments(new String[] {"--slave"});
-        	ibis.deploy.Job slaves = deploy.submitJob(js, s, cluster, null, null);
-        
-        	addJob(new ProcessingJob(id, job, master, slaves));
+            js.getCluster().setName(site);
+            js.setProcessCount(workers);
+            js.setResourceCount(workers);
+            js.setRuntime(60);
+            js.getApplication().setName("SC11-Slave");
+            js.setPoolName("SC11-" + id);
+
+            jm.getApplication().setArguments(new String[] {"--slave"});
+            ibis.deploy.Job slaves = deploy.submitJob(js, s, cluster, null, null);
+
+            addJob(new ProcessingJob(id, job, master, slaves));
         } else {
-        	addJob(new ProcessingJob(id, job, master, null));            
-        } 
+            addJob(new ProcessingJob(id, job, master, null));
+        }
 
         return id;
     }
@@ -237,65 +237,66 @@ public class Daemon {
         return jobs.remove(id);
     }
 
-    private void terminateJob(ProcessingJob job) { 
+    private void terminateJob(ProcessingJob job) {
 
-    	System.out.println("Terminating job " + job.id);
-    	
-    	if (!job.master.isFinished()) { 
-    		try { 
-    			job.master.kill();
-    		} catch (Exception e) {
-    			System.err.println("Failed to terminate master of " + job.id);
-    			e.printStackTrace(System.err);
-    		}
-    	}
-    	
-    	if (job.slaves != null && !job.slaves.isFinished()) { 
-    		try { 
-    			job.slaves.kill();
-    		} catch (Exception e) {
-    			System.err.println("Failed to terminate slaves of " + job.id);
-    			e.printStackTrace(System.err);
-    		}
-    	}
-    	
-    	removeJob(job.id);
+        System.out.println("Terminating job " + job.id);
+
+        if (!job.master.isFinished()) {
+            try {
+                job.master.kill();
+            } catch (Exception e) {
+                System.err.println("Failed to terminate master of " + job.id);
+                e.printStackTrace(System.err);
+            }
+        }
+
+        if (job.slaves != null && !job.slaves.isFinished()) {
+            try {
+                job.slaves.kill();
+            } catch (Exception e) {
+                System.err.println("Failed to terminate slaves of " + job.id);
+                e.printStackTrace(System.err);
+            }
+        }
+
+        removeJob(job.id);
     }
-    
+
     public Result info(long id) {
 
-    	ProcessingJob job = getJob(id);
+        ProcessingJob job = getJob(id);
 
         if (job == null) {
             return new Result().failed("Unknown job id: " + id);
         }
-        
-        Result tmp = job.applicationState();
-        
-        if (tmp == null) { 
-        	// Job is still staging in/out or has failed!
-        	State m = job.master.getState();
-        	State s = job.slaves == null ? null : job.slaves.getState();
-        	
-        	if (m == State.DONE || m == State.ERROR) {
-        		terminateJob(job);        	
-        		return new Result().failed("Job terminated unexpectedly!");
-        	}
 
-        	if (s != null && (s == State.DONE || s == State.ERROR)) {
-            	terminateJob(job);        	
-            	return new Result().failed("Job terminated unexpectedly!");
+        Result tmp = job.applicationState();
+
+        if (tmp == null) {
+            // Job is still staging in/out or has failed!
+            State m = job.master.getState();
+            State s = job.slaves == null ? null : job.slaves.getState();
+
+            if (m == State.DONE || m == State.ERROR) {
+                terminateJob(job);
+                return new Result().failed("Job terminated unexpectedly!");
             }
-        	
-        	return new Result().setState("DEPLOYMENT STATE: " + m.name() + 
-        			(s == null ? "" : (" | " + s.name())));
-        } 
-        
-        if (job.isDone()) { 
-        	removeJob(id);
+
+            if (s != null && (s == State.DONE || s == State.ERROR)) {
+                terminateJob(job);
+                return new Result().failed("Job terminated unexpectedly!");
+            }
+
+            return new Result().setState("DEPLOYING: " + m.name() +
+                    (s == null ? "" : (" | " + s.name())));
         }
-        
-        return tmp;
+
+        if (job.isDone()) {
+            removeJob(id);
+            return tmp;
+        } else {
+            return new Result().setState("RUNNING: " + tmp.getState());
+        }
     }
 
     public static void fatal(String message) {
@@ -314,45 +315,45 @@ public class Daemon {
     }
 
 
-	public FilterSequence getWork(long id) throws Exception {
-				
-		ProcessingJob p = getJob(id);
-		
-		if (p == null) { 
-			throw new Exception("Job " + id + " not found!"); 
-		}
-		
-		System.out.println("Get work for [" + id + "]: " + p.work);
-		
-		return p.work;
-	}
+    public FilterSequence getWork(long id) throws Exception {
 
-	public void setStatus(long id, Result res) {
-		
-		System.out.println("Set status for [" + id + "]: " + res);
-		
-		ProcessingJob p = getJob(id);
-		
-		if (p == null) { 
-			return; 
-		}
-		
-		p.setStatus(res);
-	}
+        ProcessingJob p = getJob(id);
 
-	public void done(long id) {
+        if (p == null) {
+            throw new Exception("Job " + id + " not found!");
+        }
 
-		System.out.println("Work done for [" + id + "]");
+        System.out.println("Get work for [" + id + "]: " + p.work);
 
-		ProcessingJob p = getJob(id);
-		
-		if (p == null) { 
-			return; 
-		}
-		
-		p.done();
-	}
-    
+        return p.work;
+    }
+
+    public void setStatus(long id, Result res) {
+
+        System.out.println("Set status for [" + id + "]: " + res);
+
+        ProcessingJob p = getJob(id);
+
+        if (p == null) {
+            return;
+        }
+
+        p.setStatus(res);
+    }
+
+    public void done(long id) {
+
+        System.out.println("Work done for [" + id + "]");
+
+        ProcessingJob p = getJob(id);
+
+        if (p == null) {
+            return;
+        }
+
+        p.done();
+    }
+
     public static void main(String [] args) {
 
         int port = 54672;

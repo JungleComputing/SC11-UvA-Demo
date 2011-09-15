@@ -10,8 +10,8 @@ import ibis.constellation.ActivityContext;
 import ibis.util.RunProcess;
 
 public class Script implements Serializable {
-    
-	/** Generated */
+
+    /** Generated */
     private static final long serialVersionUID = -5809701669382342293L;
 
     public final ActivityContext context;
@@ -19,14 +19,22 @@ public class Script implements Serializable {
     public final String script;
     public final String input;
     public final String output;
+    public final String inSuffix;
+    public final String outSuffix;
 
-    public Script(String script, String input, String output, ActivityContext context) {
-
+    public Script(String script, String input, String output, String inSuffix,
+            String outSuffix, ActivityContext context) {
         super();
         this.script = script;
         this.input = input;
         this.output = output;
+        this.inSuffix = inSuffix;
+        this.outSuffix = outSuffix;
         this.context = context;
+    }
+
+    private String cleanup(byte [] output) {
+        return new String(output).trim();
     }
 
     public Result execute() {
@@ -39,7 +47,6 @@ public class Script implements Serializable {
                 config.tmpdir + File.separator + output,
         };
 
-
         System.out.println("Executing: " + Arrays.toString(command));
 
         RunProcess p = new RunProcess(command);
@@ -50,17 +57,17 @@ public class Script implements Serializable {
         Result r = new Result();
 
         if (p.getExitStatus() != 0) {
-            r.failed(new String(p.getStdout()), new String(p.getStderr()));
+            r.failed(cleanup(p.getStdout()), cleanup(p.getStderr()));
         } else {
-              r.success(new String(p.getStdout()), new String(p.getStderr()));
+            r.success(cleanup(p.getStdout()), cleanup(p.getStderr()));
         }
 
         return r;
     }
-    
+
     @Override
-	public String toString() {
-		return "Script [context=" + context + ", script=" + script + ", input="
-				+ input + ", output=" + output + "]";
-	}
+    public String toString() {
+        return "Script [context=" + context + ", script=" + script + ", input="
+                + input + ", output=" + output + "]";
+    }
 }

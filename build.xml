@@ -94,6 +94,8 @@
 	        <mkdir dir="distribution/sc11-demo/lib/javagat" />
 	        <mkdir dir="distribution/sc11-demo/lib/ipl" />
 
+                <touch file="distribution/sc11-demo/lib/dummy"/>
+
         	<!-- Copy various dirs to distribution directory -->
 	        <copy todir="distribution/sc11-demo/lib/javagat">
 		        <fileset dir="external/${gat}/lib">
@@ -130,6 +132,9 @@
 	                  <include name="multicore.script"/>	
                         </fileset>
 		</copy>
+
+                <chmod dir="distribution/sc11-demo" perm="ugo+rx" includes="*.sh"/>
+                <chmod dir="distribution/sc11-demo/scripts" perm="ugo+rx" includes="*.sh"/>
 	</target>
 
 	<target name="build" depends="clean,compile-application,compile-daemon,compile-client,create-distribution">
