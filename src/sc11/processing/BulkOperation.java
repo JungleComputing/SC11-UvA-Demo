@@ -29,7 +29,7 @@ public class BulkOperation extends Activity {
     private Result error;
     private boolean done;
 
-    public BulkOperation(Master parent, long id, String in, String filetype, 
+    public BulkOperation(Master parent, long id, String in, String filetype,
             ScriptDescription [] sd, String out) {
 
         super(new UnitActivityContext("master", id), true, true);
@@ -73,21 +73,32 @@ public class BulkOperation extends Activity {
         // not used
     }
 
-    private synchronized void error(String message) {
+    private void error(String message) {
+        error(message, null);
+    }
+
+    private synchronized void error(String message, Exception e) {
+
+        System.err.println("ERROR: " + message);
+
+        if (e != null) {
+            e.printStackTrace(System.err);
+        }
+
         error = new Result().failed(message);
         done = true;
     }
 
-    private File createOutputFile(File in, File outdir) 
-    		throws GATObjectCreationException { 
-    	return GAT.createFile(outdir.toGATURI() + "/" + in.getName());
+    private File createOutputFile(File in, File outdir)
+            throws GATObjectCreationException {
+        return GAT.createFile(outdir.toGATURI() + "/" + in.getName());
     }
-    
+
     @Override
     public void initialize() throws Exception {
 
-    	System.out.println("BulkOperation " + id + " running..");
-    	
+        System.out.println("BulkOperation " + id + " running..");
+
         try {
             // Check if input exists
             File input = GAT.createFile(in);
@@ -106,9 +117,9 @@ public class BulkOperation extends Activity {
                 finish();
                 return;
             }
-            
+
             int submissions = 0;
-            
+
             if (input.isDirectory()) {
 
                 if (output.isFile()) {
@@ -126,43 +137,43 @@ public class BulkOperation extends Activity {
                 }
 
                 for (int i=0;i<tmp.length;i++) {
-                	
-                	if (!tmp[i].getName().endsWith(filetype)) { 
-                		System.out.println("Skipping (wrong name): " + tmp[i]);
-                    } else if (!tmp[i].isFile()) { 
-                		System.out.println("Skipping (directory): " + tmp[i]);
-                	} else if (!tmp[i].canRead()) { 
-                		System.out.println("Skipping (unreadable): " + tmp[i]);
-                	} else { 
-                		submissions++;
-                		executor.submit(new Operation(identifier(),
-                				(id << 8) | i, tmp[i], sd, 
-                				createOutputFile(tmp[i], output)));
-                	}
+
+                    if (!tmp[i].getName().endsWith(filetype)) {
+                        System.out.println("Skipping (wrong name): " + tmp[i]);
+                    } else if (!tmp[i].isFile()) {
+                        System.out.println("Skipping (directory): " + tmp[i]);
+                    } else if (!tmp[i].canRead()) {
+                        System.out.println("Skipping (unreadable): " + tmp[i]);
+                    } else {
+                        submissions++;
+                        executor.submit(new Operation(identifier(),
+                                (id << 8) | i, tmp[i], sd,
+                                createOutputFile(tmp[i], output)));
+                    }
                 }
             } else {
-             	if (!input.getName().endsWith(filetype)) { 
-            		System.out.println("Skipping (wrong name): " + input);
-                } else if (!input.isFile()) { 
-            		System.out.println("Skipping (directory): " + input);
-            	} else if (!input.canRead()) { 
-            		System.out.println("Skipping (unreadable): " + input);
-            	} else { 
-            		submissions++;
-            		executor.submit(new Operation(identifier(), (id << 8), 
-            				input, sd, createOutputFile(input, output)));
-            	}
+                 if (!input.getName().endsWith(filetype)) {
+                    System.out.println("Skipping (wrong name): " + input);
+                } else if (!input.isFile()) {
+                    System.out.println("Skipping (directory): " + input);
+                } else if (!input.canRead()) {
+                    System.out.println("Skipping (unreadable): " + input);
+                } else {
+                    submissions++;
+                    executor.submit(new Operation(identifier(), (id << 8),
+                            input, sd, createOutputFile(input, output)));
+                }
             }
 
-            if (submissions > 0) { 
-        		results = new Result[submissions];
+            if (submissions > 0) {
+                results = new Result[submissions];
                 suspend();
-            } else { 
-            	finish();
+            } else {
+                finish();
             }
 
         } catch (Exception e) {
-            error("Unexpected error: " + e.getMessage());
+            error("Unexpected error: " + e.getMessage(), e);
             finish();
         }
     }

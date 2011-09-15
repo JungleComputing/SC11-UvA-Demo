@@ -239,6 +239,7 @@ DAS4-UvA.latitude = 52.35505
 DAS4-UvA.longitude = 4.95583
 DAS4-UvA.color = #FF8080
 DAS4-UvA.location = DAS-4@UvA@NL
+DAS4-UvA.sc11.location = /home/jason/sc11-demo
 
 # Details of cluster "DAS4-VU"
 DAS4-VU.server.adaptor = SshTrilead
@@ -260,3 +261,5 @@ DAS4-VU.latitude = 52.3328
 DAS4-VU.longitude = 4.8669
 DAS4-VU.color = #FFBF80
 DAS4-VU.location = DAS-4@VU@NL
+DAS4-VU.sc11.location = /home/jason/sc11-demo
+

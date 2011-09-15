@@ -1,5 +1,6 @@
-OP1 scale.sh slave
-OP2 blur.sh slave
-OP3 rotate.sh slave
+SCALE 	scale.sh	*	*	slave
+BLUR 	blur.sh		*	*	slave
+ROTATE	rotate.sh	*	*	slave
+TIF_JPG	tiftojpg.sh	.tif	.jpg	slave
 
  

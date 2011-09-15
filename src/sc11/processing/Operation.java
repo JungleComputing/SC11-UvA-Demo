@@ -62,7 +62,9 @@ public class Operation extends Activity {
 
             String currentExt = cleanExt;
 
-            for (int i=0;i<sd.length+1;i++) {
+            tmp[0] = generateTempFile(cleanFileName, 0, cleanExt);
+
+            for (int i=0;i<sd.length;i++) {
 
                 String ins = sd[i].inSuffix;
                 String outs = sd[i].outSuffix;
@@ -73,9 +75,9 @@ public class Operation extends Activity {
                 }
 
                 if (outs.equals("*")) {
-                    tmp[i] = generateTempFile(cleanFileName, i, currentExt);
+                    tmp[i+1] = generateTempFile(cleanFileName, i+1, currentExt);
                 } else {
-                    tmp[i] = generateTempFile(cleanFileName, i, outs);
+                    tmp[i+1] = generateTempFile(cleanFileName, i+1, outs);
                     currentExt = outs;
                 }
             }
