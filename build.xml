@@ -130,6 +130,7 @@
 		        <fileset dir=".">
 	                  <include name="log4j.properties"/>	
 	                  <include name="multicore.script"/>	
+	                  <include name="das4.script"/>	
                         </fileset>
 		</copy>
 
