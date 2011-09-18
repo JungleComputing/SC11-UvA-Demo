@@ -177,6 +177,18 @@ public class Daemon {
             tmpDir = location + File.separator + "tmp";
         }
 
+        String execM = cluster.getProperties().getProperty("sc11.executors.master");
+
+        if (execM == null) {
+            execM = "master:16";
+        }
+                        
+        String execS = cluster.getProperties().getProperty("sc11.executors.slave");
+
+        if (execS == null) {
+            execS = "slave:16";
+        }
+        
         String config = location + File.separator + "scripts" +
                 File.separator + "configuration";
 
@@ -185,7 +197,7 @@ public class Daemon {
         String libs = location + File.separator + "lib" + File.separator;
 
         Application m = createApplication("SC11-Master", libs, config, tmpDir,
-                scriptDir, "true", id, "master");
+                scriptDir, "true", id, execM);
 
         JobDescription jm = new JobDescription("SC11-Master-" + id);
         experiment.addJob(jm);
@@ -202,7 +214,7 @@ public class Daemon {
         // Only submit the slaves if there is some processing to be done.
         if (job.filters != null && job.filters.length > 0) {
             Application s = createApplication("SC11-Slave", libs, config,
-                    tmpDir, scriptDir, "false", id, "slave:2,gpu");
+                    tmpDir, scriptDir, "false", id, execS);
 
             JobDescription js = new JobDescription("SC11-Slave-" + id);
             experiment.addJob(js);

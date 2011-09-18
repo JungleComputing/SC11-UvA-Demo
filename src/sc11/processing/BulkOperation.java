@@ -97,7 +97,7 @@ public class BulkOperation extends Activity {
     @Override
     public void initialize() throws Exception {
 
-        System.out.println("BulkOperation " + id + " running..");
+        System.out.println("BulkOperation " + id + " running...");
 
         try {
             // Check if input exists
@@ -127,9 +127,18 @@ public class BulkOperation extends Activity {
                     finish();
                     return;
                 }
+                
+                System.out.println("BulkOperation " + id + " retrieving file list...");
 
+                long start = System.currentTimeMillis();
+                
                 File [] tmp = (File[]) input.listFiles();
 
+                long end = System.currentTimeMillis();
+                
+                System.out.println("BulkOperation " + id + " file list " +
+                		"retrieved in " + ((end-start)/1000.0) + " sec.");
+                
                 if (tmp == null || tmp.length == 0) {
                     error("No input files in: " + in);
                     finish();
