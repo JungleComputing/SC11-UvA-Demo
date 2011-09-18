@@ -37,6 +37,8 @@ public class Operation extends Activity {
     private final Script [] ops;
     private final Result [] results;
 
+    private final String [] tmpFiles;
+    
     private int state = STATE_INIT;
 
     private long created;
@@ -63,14 +65,17 @@ public class Operation extends Activity {
 
         if (sd == null || sd.length == 0) {
             this.ops = null;
-            this.firstTmp = this.lastTmp = generateTempFile(cleanFileName, 0, cleanExt);
+            tmpFiles = new String[1];
+            tmpFiles[0] = generateTempFile(cleanFileName, 0, cleanExt);            
+            firstTmp = lastTmp = tmpFiles[0];
+            
             out = GAT.createFile(outDir.toGATURI() + "/" + in.getName());
         } else {
-            String [] tmp = new String[sd.length+1];
+            tmpFiles = new String[sd.length+1];
 
             String currentExt = cleanExt;
 
-            tmp[0] = generateTempFile(cleanFileName, 0, cleanExt);
+            tmpFiles[0] = generateTempFile(cleanFileName, 0, cleanExt);
 
             for (int i=0;i<sd.length;i++) {
 
@@ -83,22 +88,22 @@ public class Operation extends Activity {
                 }
 
                 if (outs.equals("*")) {
-                    tmp[i+1] = generateTempFile(cleanFileName, i+1, currentExt);
+                    tmpFiles[i+1] = generateTempFile(cleanFileName, i+1, currentExt);
                 } else {
-                    tmp[i+1] = generateTempFile(cleanFileName, i+1, outs);
+                    tmpFiles[i+1] = generateTempFile(cleanFileName, i+1, outs);
                     currentExt = outs;
                 }
             }
 
-            firstTmp = tmp[0];
-            lastTmp = tmp[tmp.length-1];
+            firstTmp = tmpFiles[0];
+            lastTmp = tmpFiles[tmpFiles.length-1];
             
             out = GAT.createFile(outDir.toGATURI() + "/" + cleanFileName + currentExt);
 
             ops = new Script[sd.length];
 
             for (int i=0;i<sd.length;i++) {
-                ops[i] = sd[i].createScript(tmp[i], tmp[i+1], id);
+                ops[i] = sd[i].createScript(tmpFiles[i], tmpFiles[i+1], id);
             }
         }
     }
@@ -137,7 +142,21 @@ public class Operation extends Activity {
 
     @Override
     public void cleanup() throws Exception {
+    	// Send result to parent. 
         executor.send(new Event(identifier(), parent, Result.merge(results)));
+        
+        // Cleanup temp files
+        for (int i=0;i<tmpFiles.length;i++) {        	
+        	
+        	String file = LocalConfig.get().tmpdir + File.separator + tmpFiles[i];
+        	
+        	try {         	
+        		new java.io.File(file).delete();
+        	} catch (Exception e) {
+        		System.err.println("Failed to delete: " + file);
+        		e.printStackTrace(System.err);
+        	}
+        }
     }
 
     @Override
