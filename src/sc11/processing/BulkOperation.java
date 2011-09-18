@@ -141,31 +141,14 @@ public class BulkOperation extends Activity {
                 }
 
                 for (int i=0;i<tmp.length;i++) {
-
-                    if (!tmp[i].getName().endsWith(filetype)) {
-                        System.out.println("Skipping (wrong name): " + tmp[i]);
-                    } else if (!tmp[i].isFile()) {
-                        System.out.println("Skipping (directory): " + tmp[i]);
-                    } else if (!tmp[i].canRead()) {
-                        System.out.println("Skipping (unreadable): " + tmp[i]);
-                    } else {
-                        submissions++;
-                        executor.submit(new Operation(identifier(),
-                                (id << 8) | i, tmp[i], sd, output));
-                    }
+                    submissions++;
+                    executor.submit(new Operation(identifier(),
+                            (id << 8) | i, tmp[i], filetype, sd, output));
                 }
             } else {
-                 if (!input.getName().endsWith(filetype)) {
-                    System.out.println("Skipping (wrong name): " + input);
-                } else if (!input.isFile()) {
-                    System.out.println("Skipping (directory): " + input);
-                } else if (!input.canRead()) {
-                    System.out.println("Skipping (unreadable): " + input);
-                } else {
-                    submissions++;
-                    executor.submit(new Operation(identifier(), (id << 8),
-                            input, sd, output));
-                }
+            	submissions++;
+            	executor.submit(new Operation(identifier(), (id << 8),
+            			input, filetype, sd, output));
             }
 
             if (submissions > 0) {

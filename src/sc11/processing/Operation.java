@@ -32,6 +32,8 @@ public class Operation extends Activity {
     private final ScriptDescription [] sd;
     
     private final File in;
+    private final String filetype;
+        
     private final File outDir;
 
     private File out;
@@ -49,7 +51,7 @@ public class Operation extends Activity {
     private long copyOutDone;
     
     public Operation(ActivityIdentifier parent, long id, File in,
-            ScriptDescription [] sd, File outDir) throws Exception {
+            String filetype, ScriptDescription [] sd, File outDir) throws Exception {
 
         super(new UnitActivityContext("master", id), true, true);
 
@@ -58,6 +60,7 @@ public class Operation extends Activity {
         this.parent = parent;
         this.id = id;
         this.in = in;
+        this.filetype = filetype;
         this.sd = sd;
         this.outDir = outDir;
     }
@@ -117,15 +120,37 @@ public class Operation extends Activity {
         		(processingDone-created) + " / " + (copyOutDone-created));
     }
 
+    private boolean checkInput() { 
+    	
+    	if (!in.getName().endsWith(filetype)) {
+        	results[0] = new Result().failed("Skipping (wrong name): " + in);
+            System.out.println("Skipping (wrong name): " + in);
+            return false;
+        } else if (!in.isFile()) {
+        	results[0] = new Result().failed("Skipping (directory): " + in);
+        	System.out.println("Skipping (directory): " + in);
+        	return false;
+        } else if (!in.canRead()) {
+        	results[0] = new Result().failed("Skipping (unreadable): " + in);            
+            System.out.println("Skipping (unreadable): " + in);
+            return false;
+        } 
+    	
+    	return true;
+    }
+    
     @Override
     public void initialize() throws Exception {
 
-    	String firstTmp = null;
-    	
-        System.out.println("Operation " + id + " starting");
+    	System.out.println("Operation " + id + " starting");
 
         started = System.currentTimeMillis();
-                   
+        
+        if (!checkInput()) { 
+        	finish();
+        	return;
+        } 
+        
         String cleanFileName = getFileNameWithoutExtension(in.getName());
         String cleanExt = getFileExtension(in.getName());
 
