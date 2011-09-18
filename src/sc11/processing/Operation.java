@@ -3,9 +3,7 @@ package sc11.processing;
 import java.util.Arrays;
 
 import org.gridlab.gat.GAT;
-import org.gridlab.gat.GATObjectCreationException;
 import org.gridlab.gat.io.File;
-import org.omg.CORBA.CTX_RESTRICT_SCOPE;
 
 import sc11.shared.Result;
 
@@ -29,16 +27,18 @@ public class Operation extends Activity {
     private final ActivityIdentifier parent;
     private final long id;
 
+    private final Result [] results = new Result[3];;
+
+    private final ScriptDescription [] sd;
+    
     private final File in;
-    private final File out;
+    private final File outDir;
 
-    private final String firstTmp;
-    private final String lastTmp;
+    private File out;
 
-    private final Script [] ops;
-    private final Result [] results;
+    private Script [] ops;
 
-    private final String [] tmpFiles;
+    private String [] tmpFiles;
     
     private int state = STATE_INIT;
 
@@ -57,56 +57,9 @@ public class Operation extends Activity {
         
         this.parent = parent;
         this.id = id;
-
         this.in = in;
-        this.results = new Result[3];
-
-        String cleanFileName = getFileNameWithoutExtension(in.getName());
-        String cleanExt = getFileExtension(in.getName());
-
-        if (sd == null || sd.length == 0) {
-            this.ops = null;
-            tmpFiles = new String[1];
-            tmpFiles[0] = generateTempFile(cleanFileName, 0, cleanExt);            
-            firstTmp = lastTmp = tmpFiles[0];
-            
-            out = GAT.createFile(outDir.toGATURI() + "/" + in.getName());
-        } else {
-            tmpFiles = new String[sd.length+1];
-
-            String currentExt = cleanExt;
-
-            tmpFiles[0] = generateTempFile(cleanFileName, 0, cleanExt);
-
-            for (int i=0;i<sd.length;i++) {
-
-                String ins = sd[i].inSuffix;
-                String outs = sd[i].outSuffix;
-
-                if (!ins.equals("*") && !currentExt.equalsIgnoreCase(ins)) {
-                    throw new Exception("Script output mismatch! "
-                            + currentExt + " != " + ins);
-                }
-
-                if (outs.equals("*")) {
-                    tmpFiles[i+1] = generateTempFile(cleanFileName, i+1, currentExt);
-                } else {
-                    tmpFiles[i+1] = generateTempFile(cleanFileName, i+1, outs);
-                    currentExt = outs;
-                }
-            }
-
-            firstTmp = tmpFiles[0];
-            lastTmp = tmpFiles[tmpFiles.length-1];
-            
-            out = GAT.createFile(outDir.toGATURI() + "/" + cleanFileName + currentExt);
-
-            ops = new Script[sd.length];
-
-            for (int i=0;i<sd.length;i++) {
-                ops[i] = sd[i].createScript(tmpFiles[i], tmpFiles[i+1], id);
-            }
-        }
+        this.sd = sd;
+        this.outDir = outDir;
     }
     
     private String generateTempFile(String clean, int count, String ext) {
@@ -167,20 +120,74 @@ public class Operation extends Activity {
     @Override
     public void initialize() throws Exception {
 
+    	String firstTmp = null;
+    	
         System.out.println("Operation " + id + " starting");
 
         started = System.currentTimeMillis();
-        
+                   
+        String cleanFileName = getFileNameWithoutExtension(in.getName());
+        String cleanExt = getFileExtension(in.getName());
+
+        if (sd == null || sd.length == 0) {
+    
+        	System.out.println("Operation " + id + " COPY only");
+        	
+        	this.ops = null;
+            tmpFiles = new String[1];
+            tmpFiles[0] = generateTempFile(cleanFileName, 0, cleanExt);            
+            out = GAT.createFile(outDir.toGATURI() + "/" + in.getName());
+        } else {
+        	
+        	System.out.println("Operation " + id + " COPY + FILTERS");
+
+            tmpFiles = new String[sd.length+1];
+
+            String currentExt = cleanExt;
+
+            tmpFiles[0] = generateTempFile(cleanFileName, 0, cleanExt);
+
+            for (int i=0;i<sd.length;i++) {
+
+                String ins = sd[i].inSuffix;
+                String outs = sd[i].outSuffix;
+
+                if (!ins.equals("*") && !currentExt.equalsIgnoreCase(ins)) {
+                    throw new Exception("Script output mismatch! "
+                            + currentExt + " != " + ins);
+                }
+
+                if (outs.equals("*")) {
+                    tmpFiles[i+1] = generateTempFile(cleanFileName, i+1, currentExt);
+                } else {
+                    tmpFiles[i+1] = generateTempFile(cleanFileName, i+1, outs);
+                    currentExt = outs;
+                }
+            }
+
+            out = GAT.createFile(outDir.toGATURI() + "/" + cleanFileName + currentExt);
+
+            ops = new Script[sd.length];
+
+            for (int i=0;i<sd.length;i++) {
+                ops[i] = sd[i].createScript(tmpFiles[i], tmpFiles[i+1], id);
+            }
+        }
+    
         state = STATE_COPY_IN;
 
         File tmp = GAT.createFile("file:///" + LocalConfig.get().tmpdir +
-                File.separator + firstTmp);
+                File.separator + tmpFiles[0]);
 
         System.out.println("Operation " + id + " submitting COPY_IN " + in +
                 " -> " + tmp);
 
         executor.submit(new Copy(identifier(), id, in, tmp));
 
+        long time = System.currentTimeMillis();
+        
+        System.out.println("Operation " + id + " init took " + (time-created));
+        
         suspend();
     }
 
@@ -213,7 +220,7 @@ public class Operation extends Activity {
                     processingDone = copyInDone;
                     
                     File tmp = GAT.createFile("file:///" +
-                            LocalConfig.get().tmpdir + File.separator + lastTmp);
+                            LocalConfig.get().tmpdir + File.separator + tmpFiles[tmpFiles.length-1]);
 
                     System.out.println("Operation " + id + " submitting COPY_OUT "
                             + tmp + " -> " + out);
@@ -240,7 +247,7 @@ public class Operation extends Activity {
                 state = STATE_COPY_OUT;
 
                 File tmp = GAT.createFile("file:///" +
-                        LocalConfig.get().tmpdir + File.separator + lastTmp);
+                        LocalConfig.get().tmpdir + File.separator + tmpFiles[tmpFiles.length-1]);
 
                 System.out.println("Operation " + id + " submitting COPY_OUT "
                         + tmp + " -> " + out);
