@@ -38,11 +38,19 @@ public class Operation extends Activity {
 
     private int state = STATE_INIT;
 
+    private long created;
+    private long started;
+    private long copyInDone;
+    private long processingDone;
+    private long copyOutDone;
+    
     public Operation(ActivityIdentifier parent, long id, File in,
             ScriptDescription [] sd, File out) throws Exception {
 
         super(new UnitActivityContext("master", id), true, true);
 
+        created = System.currentTimeMillis();
+        
         this.parent = parent;
         this.id = id;
 
@@ -135,6 +143,8 @@ public class Operation extends Activity {
 
         System.out.println("Operation " + id + " starting");
 
+        started = System.currentTimeMillis();
+        
         state = STATE_COPY_IN;
 
         File tmp = GAT.createFile("file:///" + LocalConfig.get().tmpdir +
@@ -159,7 +169,9 @@ public class Operation extends Activity {
         case STATE_COPY_IN:
 
             results[0] = res;
-
+            
+            copyInDone = System.currentTimeMillis();
+            
             if (res.success()) {
                 if (ops != null && ops.length > 0) {
 
@@ -172,6 +184,8 @@ public class Operation extends Activity {
                 } else {
                     state = STATE_COPY_OUT;
 
+                    processingDone = copyInDone;
+                    
                     File tmp = GAT.createFile("file:///" +
                             LocalConfig.get().tmpdir + File.separator + lastTmp);
 
@@ -193,6 +207,8 @@ public class Operation extends Activity {
 
             results[1] = res;
 
+            processingDone = System.currentTimeMillis();
+            
             if (res.success()) {
 
                 state = STATE_COPY_OUT;
@@ -220,6 +236,8 @@ public class Operation extends Activity {
 
             if (res.success()) {
 
+            	copyOutDone = System.currentTimeMillis();
+            	
                 System.out.println("Operation " + id + " DONE");
 
                 state = STATE_DONE;

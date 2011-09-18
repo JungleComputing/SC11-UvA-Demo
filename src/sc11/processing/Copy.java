@@ -28,9 +28,14 @@ public class Copy extends SimpleActivity {
 
         Result r = new Result();
 
-        try {
-            in.copy(out.toGATURI());
-            r.success("File copied: " + in + " -> " + out);
+        try {        	
+        	long start = System.currentTimeMillis();        	
+            
+        	in.copy(out.toGATURI());
+
+            long end = System.currentTimeMillis();        	
+            
+            r.success("File copied: " + in + " -> " + out + " " + (end-start));
         } catch (Exception e) {
             r.failed("Copy failed: " + in + " -> " + out + "\n" + e.getMessage());
         }
