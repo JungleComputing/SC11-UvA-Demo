@@ -49,10 +49,14 @@ public class Script implements Serializable {
 
         System.out.println("Executing: " + Arrays.toString(command));
 
+        long start = System.currentTimeMillis();
+        
         RunProcess p = new RunProcess(command);
         p.run();
 
-        System.out.println("Done: " + Arrays.toString(command));
+        long end = System.currentTimeMillis();        
+        
+        System.out.println("Done: " + Arrays.toString(command) + " " + (end-start));
 
         Result r = new Result();
 
