@@ -88,12 +88,7 @@ public class BulkOperation extends Activity {
         error = new Result().failed(message);
         done = true;
     }
-
-    private File createOutputFile(File in, File outdir)
-            throws GATObjectCreationException {
-        return GAT.createFile(outdir.toGATURI() + "/" + in.getName());
-    }
-
+  
     @Override
     public void initialize() throws Exception {
 
@@ -156,8 +151,7 @@ public class BulkOperation extends Activity {
                     } else {
                         submissions++;
                         executor.submit(new Operation(identifier(),
-                                (id << 8) | i, tmp[i], sd,
-                                createOutputFile(tmp[i], output)));
+                                (id << 8) | i, tmp[i], sd, output));
                     }
                 }
             } else {
@@ -170,7 +164,7 @@ public class BulkOperation extends Activity {
                 } else {
                     submissions++;
                     executor.submit(new Operation(identifier(), (id << 8),
-                            input, sd, createOutputFile(input, output)));
+                            input, sd, output));
                 }
             }
 

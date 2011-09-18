@@ -3,6 +3,7 @@ package sc11.processing;
 import java.util.Arrays;
 
 import org.gridlab.gat.GAT;
+import org.gridlab.gat.GATObjectCreationException;
 import org.gridlab.gat.io.File;
 
 import sc11.shared.Result;
@@ -45,7 +46,7 @@ public class Operation extends Activity {
     private long copyOutDone;
     
     public Operation(ActivityIdentifier parent, long id, File in,
-            ScriptDescription [] sd, File out) throws Exception {
+            ScriptDescription [] sd, File outDir) throws Exception {
 
         super(new UnitActivityContext("master", id), true, true);
 
@@ -55,8 +56,6 @@ public class Operation extends Activity {
         this.id = id;
 
         this.in = in;
-        this.out = out;
-
         this.results = new Result[3];
 
         String cleanFileName = getFileNameWithoutExtension(in.getName());
@@ -65,6 +64,7 @@ public class Operation extends Activity {
         if (sd == null || sd.length == 0) {
             this.ops = null;
             this.firstTmp = this.lastTmp = generateTempFile(cleanFileName, 0, cleanExt);
+            out = GAT.createFile(outDir.toGATURI() + "/" + in.getName());
         } else {
             String [] tmp = new String[sd.length+1];
 
@@ -92,6 +92,8 @@ public class Operation extends Activity {
 
             firstTmp = tmp[0];
             lastTmp = tmp[tmp.length-1];
+            
+            out = GAT.createFile(outDir.toGATURI() + "/" + cleanFileName + currentExt);
 
             ops = new Script[sd.length];
 
@@ -100,7 +102,7 @@ public class Operation extends Activity {
             }
         }
     }
-
+    
     private String generateTempFile(String clean, int count, String ext) {
         return "TMP-" + count + "-" + clean + ext;
     }
