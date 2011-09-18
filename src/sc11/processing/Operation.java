@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.gridlab.gat.GAT;
 import org.gridlab.gat.GATObjectCreationException;
 import org.gridlab.gat.io.File;
+import org.omg.CORBA.CTX_RESTRICT_SCOPE;
 
 import sc11.shared.Result;
 
@@ -157,6 +158,10 @@ public class Operation extends Activity {
         		e.printStackTrace(System.err);
         	}
         }
+        
+        System.out.println("Operation " + id + " done: " + in.getName() + " " + 
+        		(started-created) + " / " + (copyInDone - created) + " / " + 
+        		(processingDone-created) + " / " + (copyOutDone-created));
     }
 
     @Override

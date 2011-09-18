@@ -34,6 +34,8 @@ public class Copy extends SimpleActivity {
         	in.copy(out.toGATURI());
 
             long end = System.currentTimeMillis();        	
+
+            System.out.println("File copied: " + in + " -> " + out + " " + (end-start));
             
             r.success("File copied: " + in + " -> " + out + " " + (end-start));
         } catch (Exception e) {
