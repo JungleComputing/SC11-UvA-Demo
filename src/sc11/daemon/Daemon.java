@@ -180,7 +180,7 @@ public class Daemon {
         String execM = cluster.getProperties().getProperty("sc11.executors.master");
 
         if (execM == null) {
-            execM = "master:16";
+            execM = "master:24";
         }
                         
         String execS = cluster.getProperties().getProperty("sc11.executors.slave");
