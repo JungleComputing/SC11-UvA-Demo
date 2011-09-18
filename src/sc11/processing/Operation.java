@@ -211,7 +211,7 @@ public class Operation extends Activity {
 
         long time = System.currentTimeMillis();
         
-        System.out.println("Operation " + id + " init took " + (time-created));
+        System.out.println("Operation " + id + " init took " + (time-started));
         
         suspend();
     }
