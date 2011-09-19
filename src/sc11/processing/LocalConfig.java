@@ -63,7 +63,10 @@ public class LocalConfig {
 	
 	public static void println(String message, Exception e) { 
 		System.out.println(message);
-		e.printStackTrace();
+		
+		if (e != null) { 
+			e.printStackTrace();
+		} 
 	}
 
 }
