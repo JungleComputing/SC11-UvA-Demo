@@ -124,7 +124,8 @@ public class Daemon {
         m.setSystemProperty("sc11.scriptDir", scriptDir);
         m.setSystemProperty("sc11.ID", "" + id);
         m.setSystemProperty("sc11.executors", executors);
-
+        m.setSystemProperty("sc11.verbose", "true");
+        
         m.setJVMOptions("-classpath",
                 libs + "sc11-application-0.2.0.jar:" +
                         libs + "constellation-0.7.0.jar:" +
