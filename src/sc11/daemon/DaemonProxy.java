@@ -28,6 +28,8 @@ public class DaemonProxy extends Thread {
         public Connection(Socket s) throws IOException {
             this.s = s;
             out = new ObjectOutputStream(new BufferedOutputStream(s.getOutputStream()));
+            out.flush();
+            
             in = new ObjectInputStream(new BufferedInputStream(s.getInputStream()));
         }
 

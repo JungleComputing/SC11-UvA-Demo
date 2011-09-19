@@ -24,6 +24,7 @@ public class DaemonStub {
 
         in = new ObjectInputStream(new BufferedInputStream(s.getInputStream()));
         out = new ObjectOutputStream(new BufferedOutputStream(s.getOutputStream()));
+        out.flush();
     }
 
     public long exec(FilterSequence job) throws IOException {
