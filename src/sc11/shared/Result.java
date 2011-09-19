@@ -105,7 +105,7 @@ public class Result implements Serializable {
 			if (sub[i] == null) {
 				out.println(prefix + "  - empty -");
 			} else {  
-				sub[i].prettyPrint(out, prefix + "  ");
+				sub[i].prettyPrint(out, prefix + "***");
 			}
 		}
     }
