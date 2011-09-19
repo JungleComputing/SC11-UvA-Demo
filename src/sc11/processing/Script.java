@@ -45,7 +45,7 @@ public class Script implements Serializable {
     	}
 
     	if (err.length() > 0) { 
-    		result = "stderr: " + err;
+    		result += "stderr: " + err;
     	}
     	
     	return result; 
@@ -72,9 +72,11 @@ public class Script implements Serializable {
 
         long end = System.currentTimeMillis();        
         
-        LocalConfig.println(txt + ": OK" + (end-start));
+        boolean ok = (p.getExitStatus() == 0);
         
-        return new Result(txt, p.getExitStatus() == 0, output(p), (end-start));
+        LocalConfig.println(txt + ": " + (ok ? "OK ":"ERROR ") + (end-start));
+        
+        return new Result(txt, ok, (ok ? "OK ":"ERROR ") + output(p), (end-start));
     }
 
     @Override

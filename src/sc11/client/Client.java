@@ -64,7 +64,8 @@ public class Client {
                 }            	
             } 
 
-            if (result != null) { 
+            if (result != null) {
+            	System.out.println("DONE -- Result:");
             	result.prettyPrint(System.out);            	
             }
             
