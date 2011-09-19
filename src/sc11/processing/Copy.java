@@ -26,7 +26,7 @@ public class Copy extends SimpleActivity {
 
     private Result copy() {
 
-    	String txt = "COPY(" + in + " -> " + out + "): ";
+    	String txt = "COPY(" + in + " -> " + out + ")";
     	    	
         try {        	
         	long start = System.currentTimeMillis();        	
@@ -35,12 +35,12 @@ public class Copy extends SimpleActivity {
 
             long end = System.currentTimeMillis();        	
 
-            LocalConfig.println(txt + "Done " + (end-start));
+            LocalConfig.println(txt + ": OK " + (end-start));
 
-            return new Result(true, txt + "Done" , (end-start));
+            return new Result(txt, true, "OK" , (end-start));
         } catch (Exception e) {        	
-        	LocalConfig.println(txt + " Failed", e);
-            return new Result(false, txt + "Failed - " + e.getMessage(), 0);
+        	LocalConfig.println(txt + ": ERROR " + e.getMessage(), e);
+            return new Result(txt, false, "ERROR " + e.getMessage(), 0);
         }
     }
 

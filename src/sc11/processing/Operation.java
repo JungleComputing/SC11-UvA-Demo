@@ -128,15 +128,15 @@ public class Operation extends Activity {
     	boolean success = (state != STATE_ERROR);
     	
     	if (success) { 
-    		error = txt + ": Done";
+    		error = "OK";
     	} 
     	
-        executor.send(new Event(identifier(), parent, new Result(success, error, time, results)));
+        executor.send(new Event(identifier(), parent, new Result(txt, success, error, time, results)));
         
         // Cleanup temp files
         cleanupTmp();
         
-        LocalConfig.println(error + " " + time);
+        LocalConfig.println(txt + ": " + error + " " + time);
     }
 
     private boolean checkInput() { 
@@ -263,7 +263,7 @@ public class Operation extends Activity {
 
     			results[0] = res;
 
-    			if (res.success()) {
+    			if (res.isSuccess()) {
     				if (ops != null && ops.length > 0) {
 
     					LocalConfig.println(txt + ": Submitting SEQUENCE(" + inputName + ") " + Arrays.toString(ops));
@@ -293,7 +293,7 @@ public class Operation extends Activity {
 
     			results[1] = res;
 
-    			if (res.success()) {
+    			if (res.isSuccess()) {
 
     				state = STATE_COPY_OUT;
 
@@ -314,7 +314,7 @@ public class Operation extends Activity {
 
     			results[2] = res;
 
-    			if (res.success()) {
+    			if (res.isSuccess()) {
     				LocalConfig.println(txt + ": Done");
     				state = STATE_DONE;
     				finish();

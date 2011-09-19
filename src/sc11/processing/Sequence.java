@@ -55,9 +55,11 @@ public class Sequence extends Activity {
     	
         results[index] = tmp;
 
-        if (!tmp.success() || index == sequence.length-1) {
-        	LocalConfig.println(txt + ": Done!");
-            executor.send(new Event(identifier(), parent, new Result(tmp.success(), txt + ": Done", 0, results)));            
+        boolean ok = tmp.isSuccess();
+        
+        if (!ok || index == sequence.length-1) {
+        	LocalConfig.println(txt + ": " + (ok ? "OK" : "ERROR"));
+            executor.send(new Event(identifier(), parent, new Result(txt, ok, (ok ? "OK" : "ERROR"), 0, results)));            
             finish();
         } else {
             index++;

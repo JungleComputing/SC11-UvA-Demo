@@ -37,8 +37,18 @@ public class Script implements Serializable {
 
     	String out = new String(p.getStdout()).trim();
     	String err = new String(p.getStderr()).trim();
-    
-    	return "stdout: " + out + "\nstderr: " + err; 
+
+    	String result = "";
+    	
+    	if (out.length() > 0) { 
+    		result = "stdout: " + out + " ";
+    	}
+
+    	if (err.length() > 0) { 
+    		result = "stderr: " + err;
+    	}
+    	
+    	return result; 
     }
     
     public Result execute() {
@@ -51,7 +61,9 @@ public class Script implements Serializable {
                 config.tmpdir + File.separator + output,
         };
 
-        LocalConfig.println("Script executing: " + Arrays.toString(command));
+        String txt = "SCRIPT" + Arrays.toString(command);
+                
+        LocalConfig.println(txt + ": Executing");
         
         long start = System.currentTimeMillis();
         
@@ -60,9 +72,9 @@ public class Script implements Serializable {
 
         long end = System.currentTimeMillis();        
         
-        LocalConfig.println("Script done: " + Arrays.toString(command) + " " + (end-start));
+        LocalConfig.println(txt + ": OK" + (end-start));
         
-        return new Result(p.getExitStatus() == 0, output(p), (end-start));
+        return new Result(txt, p.getExitStatus() == 0, output(p), (end-start));
     }
 
     @Override

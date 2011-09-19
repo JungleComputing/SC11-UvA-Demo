@@ -44,7 +44,7 @@ public class BulkOperation extends Activity {
         this.out = out;
         this.sd = sd;
         
-        txt = "BULK(" + in + " -> " + out + "): ";
+        txt = "BULK(" + in + " -> " + out + ")";
     }
 
     public long getID() {
@@ -59,17 +59,17 @@ public class BulkOperation extends Activity {
 
         if (done) {
             if (error != null) {
-            	return new Result(false, error, 0, results);
+            	return new Result(txt, false, error, 0, results);
             }
             
-            return new Result(true, txt +  "Done", time, results);
+            return new Result(txt, true, "OK", time, results);
         }
 
         if (results == null) {
-            return new Result("INITIALIZING");
+            return new Result(txt, "INITIALIZING");
         }
 
-        return new Result("PROCESSING: " + resultCount + " / " + results.length);
+        return new Result(txt, "PROCESSING: " + resultCount + " / " + results.length);
     }
 
     @Override
@@ -83,10 +83,10 @@ public class BulkOperation extends Activity {
 
     private synchronized void error(String message, Exception e) {
 
-        error = txt + " ERROR: " + message; 
+        error = "ERROR: " + message; 
         done = true;
 
-        LocalConfig.println(error, e);
+        LocalConfig.println(txt + ": " + error, e);
     }
   
     @Override
