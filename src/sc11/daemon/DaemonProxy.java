@@ -27,8 +27,8 @@ public class DaemonProxy extends Thread {
 
         public Connection(Socket s) throws IOException {
             this.s = s;
-            in = new ObjectInputStream(new BufferedInputStream(s.getInputStream()));
             out = new ObjectOutputStream(new BufferedOutputStream(s.getOutputStream()));
+            in = new ObjectInputStream(new BufferedInputStream(s.getInputStream()));
         }
 
         private void handleExec(FilterSequence job) throws IOException {
