@@ -11,7 +11,10 @@ import ibis.constellation.context.UnitActivityContext;
 
 public class Copy extends SimpleActivity {
 
-    private final File in;
+	/** Generated */
+    private static final long serialVersionUID = -6441545366616186882L;
+
+	private final File in;
     private final File out;
 
     public Copy(ActivityIdentifier parent, long id, File in, File out) {
@@ -21,13 +24,10 @@ public class Copy extends SimpleActivity {
         this.out = out;
     }
 
-    /** Generated */
-    private static final long serialVersionUID = -6441545366616186882L;
-
     private Result copy() {
 
-        Result r = new Result();
-
+    	String txt = "COPY(" + in + " -> " + out + "): ";
+    	    	
         try {        	
         	long start = System.currentTimeMillis();        	
             
@@ -35,14 +35,13 @@ public class Copy extends SimpleActivity {
 
             long end = System.currentTimeMillis();        	
 
-            System.out.println("File copied: " + in + " -> " + out + " " + (end-start));
-            
-            r.success("File copied: " + in + " -> " + out + " " + (end-start));
-        } catch (Exception e) {
-            r.failed("Copy failed: " + in + " -> " + out + "\n" + e.getMessage());
-        }
+            LocalConfig.println(txt + "Done " + (end-start));
 
-        return r;
+            return new Result(true, txt + "Done" , (end-start));
+        } catch (Exception e) {        	
+        	LocalConfig.println(txt + " Failed", e);
+            return new Result(false, txt + "Failed - " + e.getMessage(), 0);
+        }
     }
 
     @Override

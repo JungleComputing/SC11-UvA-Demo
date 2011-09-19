@@ -44,8 +44,8 @@ public class Main {
         }
 
         if (executors.size() == 0) {
-            System.err.println("Failed to parse executor list!");
-            System.err.println("    " + config);
+            LocalConfig.println("Failed to parse executor list!");
+            LocalConfig.println("    " + config);
             System.exit(1);
         }
 
@@ -58,7 +58,7 @@ public class Main {
         String tmp = p.getProperty(name);
 
         if (tmp == null) {
-            System.err.println("No " + name + " property specified!");
+            LocalConfig.println("No " + name + " property specified!");
             System.exit(1);
         }
 
@@ -67,9 +67,7 @@ public class Main {
 
     public static void main(String [] args) {
 
-        System.out.println("Starting sc11.processing.Main ---");
-
-        Properties p = System.getProperties();
+    	Properties p = System.getProperties();
 
         String config    = getProperty(p, "sc11.config");
         String tmpdir    = getProperty(p, "sc11.tmpDir");
@@ -77,20 +75,24 @@ public class Main {
         String jobid     = getProperty(p, "sc11.ID");
         String master    = getProperty(p, "ibis.constellation.master");
         String adres     = getProperty(p, "ibis.server.address");
-
+        String verbose   = getProperty(p, "sc11.verbose");
+        
         boolean isMaster = Boolean.parseBoolean(master);
-
+        boolean isVerbose = Boolean.parseBoolean(verbose);
+        
         long id = Long.parseLong(jobid);
 
         String [] executors = parseExecutorConfig(getProperty(p, "sc11.executors"));
 
         // Store some 'global' configuration
-        LocalConfig.set(tmpdir, scriptdir);
+        LocalConfig.set(isVerbose, tmpdir, scriptdir);
 
+        LocalConfig.println("Starting sc11.processing.Main ---");
+        
         try {
 
             if (isMaster) {
-                System.out.println("Creating Ibis ContactClient using server: " + adres);
+                LocalConfig.println("Creating Ibis ContactClient using server: " + adres);
 
                 Properties prop = new Properties();
                 prop.put("ibis.server.address", adres);
@@ -101,14 +103,14 @@ public class Main {
                 IbisIdentifier server = null;
 
                 while (server == null) {
-                    System.out.println("Attempting to find ContactServer....");
+                    LocalConfig.println("Attempting to find ContactServer....");
                     server = myIbis.registry().getElectionResult("ContactServer", 1000);
                 }
 
                 // Create proxy to remote object
                 DaemonInterface daemon = RPC.createProxy(DaemonInterface.class, server, "ContactServer", myIbis);
 
-                System.out.println("Ibis ContactClient created!");
+                LocalConfig.println("Ibis ContactClient created!");
 
                 Master m = new Master(executors, config);
 
@@ -127,11 +129,8 @@ public class Main {
 
                     res = m.info(pid);
 
-                   // System.out.println("Current state: " + res.getState());
-
                     daemon.setStatus(id, res);
-
-                } while (!res.finished());
+                } while (!res.isFinished());
 
                 daemon.done(id);
                 myIbis.end();
@@ -142,8 +141,7 @@ public class Main {
                 s.run();
             }
        } catch (Exception e) {
-           System.err.println("Processing failed!");
-           e.printStackTrace(System.err);
+    	   LocalConfig.println("Processing failed!", e);
        }
     }
 }

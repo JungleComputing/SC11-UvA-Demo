@@ -10,5 +10,9 @@ public interface Protocol {
 	public static byte OPCODE_DONE    = 54;
 	public static byte OPCODE_RUNNING = 55;
 	public static byte OPCODE_ERROR   = 56;
+	public static byte OPCODE_UNKNOWN = 57;
+	public static byte OPCODE_RESULT  = 58;
+	
+	
 	
 }

@@ -2,9 +2,9 @@ package sc11.daemon;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -22,18 +22,16 @@ public class DaemonProxy extends Thread {
     private class Connection extends Thread {
         private Socket s;
 
-        private DataInputStream in;
-        private DataOutputStream out;
+        private ObjectInputStream in;
+        private ObjectOutputStream out;
 
         public Connection(Socket s) throws IOException {
             this.s = s;
-            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
-            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+            in = new ObjectInputStream(new BufferedInputStream(s.getInputStream()));
+            out = new ObjectOutputStream(new BufferedOutputStream(s.getOutputStream()));
         }
 
-        private void handleExec() throws IOException {
-
-            FilterSequence job = FilterSequence.read(in);
+        private void handleExec(FilterSequence job) throws IOException {
 
             System.out.println("PROXY read: " + job);
             
@@ -57,9 +55,7 @@ public class DaemonProxy extends Thread {
             out.flush();
         }
 
-        private void handleInfo() throws IOException {
-
-            long id = in.readLong();
+        private void handleInfo(long id) throws IOException {
 
             Result res = null;
             Exception ex = null;
@@ -73,16 +69,10 @@ public class DaemonProxy extends Thread {
             if (ex != null) {
                 out.write(Protocol.OPCODE_ERROR);
                 out.writeUTF(ex.getMessage());
-            } else if (!res.finished()) {
-                out.write(Protocol.OPCODE_RUNNING);
-                out.writeUTF(res.getState());
-            } else if (res.success()) {
-                out.write(Protocol.OPCODE_DONE);
-                out.writeUTF(res.getOuput());
-            } else {
-                out.write(Protocol.OPCODE_ERROR);
-                out.writeUTF(res.getError());
-            }
+            } else { 
+            	out.write(Protocol.OPCODE_RESULT);
+                out.writeObject(res);
+            } 
 
             out.flush();
         }
@@ -124,11 +114,11 @@ public class DaemonProxy extends Thread {
                         break;
 
                     case Protocol.OPCODE_EXEC:
-                        handleExec();
+                        handleExec((FilterSequence) in.readObject());
                         break;
 
                     case Protocol.OPCODE_INFO:
-                        handleInfo();
+                        handleInfo(in.readLong());
                         break;
 
                     case Protocol.OPCODE_GOODBYE:

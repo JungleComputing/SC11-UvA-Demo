@@ -279,7 +279,7 @@ public class Daemon {
         ProcessingJob job = getJob(id);
 
         if (job == null) {
-            return new Result().failed("Unknown job id: " + id);
+            return new Result(false, "Unknown job id: " + id);
         }
 
         Result tmp = job.applicationState();
@@ -291,15 +291,15 @@ public class Daemon {
 
             if (m == State.DONE || m == State.ERROR) {
                 terminateJob(job);
-                return new Result().failed("Job terminated unexpectedly!");
+                return new Result(false, "Job terminated unexpectedly!");
             }
 
             if (s != null && (s == State.DONE || s == State.ERROR)) {
                 terminateJob(job);
-                return new Result().failed("Job terminated unexpectedly!");
+                return new Result(false, "Job terminated unexpectedly!");
             }
 
-            return new Result().setState("DEPLOYING: " + m.name() +
+            return new Result("DEPLOYING: " + m.name() +
                     (s == null ? "" : (" | " + s.name())));
         }
 
@@ -307,7 +307,7 @@ public class Daemon {
             removeJob(id);
             return tmp;
         } else {
-            return new Result().setState("RUNNING: " + tmp.getState());
+            return new Result("RUNNING: " + tmp.message);
         }
     }
 

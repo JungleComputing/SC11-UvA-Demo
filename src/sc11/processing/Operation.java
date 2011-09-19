@@ -13,7 +13,7 @@ import ibis.constellation.Event;
 import ibis.constellation.context.UnitActivityContext;
 
 public class Operation extends Activity {
-
+	
     private static final int STATE_INIT     = 0;
     private static final int STATE_COPY_IN  = 1;
     private static final int STATE_FILTER   = 2;
@@ -32,6 +32,9 @@ public class Operation extends Activity {
     private final ScriptDescription [] sd;
     
     private final File in;
+    
+    private final String inputName;
+    
     private final String filetype;
         
     private final File outDir;
@@ -44,25 +47,27 @@ public class Operation extends Activity {
     
     private int state = STATE_INIT;
 
-    private long created;
-    private long started;
-    private long copyInDone;
-    private long processingDone;
-    private long copyOutDone;
-    
+    private long time;
+    private String error;
+
+    private final String txt;
+	
     public Operation(ActivityIdentifier parent, long id, File in,
             String filetype, ScriptDescription [] sd, File outDir) throws Exception {
 
         super(new UnitActivityContext("master", id), true, true);
 
-        created = System.currentTimeMillis();
-        
         this.parent = parent;
         this.id = id;
         this.in = in;
+        
+        this.inputName = in.getName();
+        
         this.filetype = filetype;
         this.sd = sd;
         this.outDir = outDir;
+        
+        txt = "OPERATION(" + inputName +")";
     }
     
     private String generateTempFile(String clean, int count, String ext) {
@@ -97,15 +102,15 @@ public class Operation extends Activity {
         // Ignored
     }
 
-    @Override
-    public void cleanup() throws Exception {
-    	// Send result to parent. 
-        executor.send(new Event(identifier(), parent, Result.merge(results)));
-        
-        // Cleanup temp files
-        for (int i=0;i<tmpFiles.length;i++) {        	
+    private void cleanupTmp() { 
+    	
+    	if (tmpFiles == null) { 
+    		return;
+    	}
+    	
+    	for (int i=0;i<tmpFiles.length;i++) {        	
         	
-        	String file = LocalConfig.get().tmpdir + File.separator + tmpFiles[i];
+        	String file = LocalConfig.getTmpDir() + File.separator + tmpFiles[i];
         	
         	try {         	
         		new java.io.File(file).delete();
@@ -113,206 +118,222 @@ public class Operation extends Activity {
         		System.err.println("Failed to delete: " + file);
         		e.printStackTrace(System.err);
         	}
-        }
+        }    	
+    }
+    
+    @Override
+    public void cleanup() throws Exception {
+    	// Send result to parent. 
+    	
+    	boolean success = (state != STATE_ERROR);
+    	
+    	if (success) { 
+    		error = txt + ": Done";
+    	} 
+    	
+        executor.send(new Event(identifier(), parent, new Result(success, error, time, results)));
         
-        System.out.println("Operation " + id + " done: " + in.getName() + " " + 
-        		(started-created) + " / " + (copyInDone - created) + " / " + 
-        		(processingDone-created) + " / " + (copyOutDone-created));
+        // Cleanup temp files
+        cleanupTmp();
+        
+        LocalConfig.println(error + " " + time);
     }
 
     private boolean checkInput() { 
     	
     	if (!in.getName().endsWith(filetype)) {
-        	results[0] = new Result().failed("Skipping (wrong name): " + in);
-            System.out.println("Skipping (wrong name): " + in);
+        	error("Skipping (wrong name): " + in);
             return false;
         } else if (!in.isFile()) {
-        	results[0] = new Result().failed("Skipping (directory): " + in);
-        	System.out.println("Skipping (directory): " + in);
+        	error("Skipping (directory): " + in);
         	return false;
         } else if (!in.canRead()) {
-        	results[0] = new Result().failed("Skipping (unreadable): " + in);            
-            System.out.println("Skipping (unreadable): " + in);
+        	error("Skipping (unreadable): " + in);
             return false;
         } 
     	
     	return true;
     }
     
+    private void error(String message) {
+    	error(message, null);
+    }
+    
+    private void error(String message, Exception e) { 
+    
+    	state = STATE_ERROR;    	
+    	error = txt + " ERROR: " + message;
+
+    	LocalConfig.println(error, e);
+    } 
+    	
     @Override
-    public void initialize() throws Exception {
+    public void initialize() {
 
-    	System.out.println("Operation " + id + " starting");
+    	long start = System.currentTimeMillis();
+    	
+    	try { 
+    		LocalConfig.println(txt + ": Starting");
 
-        started = System.currentTimeMillis();
+    		if (!checkInput()) { 
+    			finish();
+    			return;
+    		} 
         
-        if (!checkInput()) { 
-        	finish();
-        	return;
-        } 
-        
-        String cleanFileName = getFileNameWithoutExtension(in.getName());
-        String cleanExt = getFileExtension(in.getName());
+    		String cleanFileName = getFileNameWithoutExtension(in.getName());
+    		String cleanExt = getFileExtension(in.getName());
 
-        if (sd == null || sd.length == 0) {
-    
-        	System.out.println("Operation " + id + " COPY only");
-        	
-        	this.ops = null;
-            tmpFiles = new String[1];
-            tmpFiles[0] = generateTempFile(cleanFileName, 0, cleanExt);            
-            out = GAT.createFile(outDir.toGATURI() + "/" + in.getName());
-        } else {
-        	
-        	System.out.println("Operation " + id + " COPY + FILTERS");
+    		if (sd == null || sd.length == 0) {
 
-            tmpFiles = new String[sd.length+1];
+    			LocalConfig.println(txt + ": COPY only");
 
-            String currentExt = cleanExt;
+    			this.ops = null;
+    			tmpFiles = new String[1];
+    			tmpFiles[0] = generateTempFile(cleanFileName, 0, cleanExt);            
+    			out = GAT.createFile(outDir.toGATURI() + "/" + in.getName());
 
-            tmpFiles[0] = generateTempFile(cleanFileName, 0, cleanExt);
+    		} else {
+    			LocalConfig.println(txt + ": COPY + FILTERS");
 
-            for (int i=0;i<sd.length;i++) {
+    			tmpFiles = new String[sd.length+1];
 
-                String ins = sd[i].inSuffix;
-                String outs = sd[i].outSuffix;
+    			String currentExt = cleanExt;
 
-                if (!ins.equals("*") && !currentExt.equalsIgnoreCase(ins)) {
-                    throw new Exception("Script output mismatch! "
-                            + currentExt + " != " + ins);
-                }
+    			tmpFiles[0] = generateTempFile(cleanFileName, 0, cleanExt);
 
-                if (outs.equals("*")) {
-                    tmpFiles[i+1] = generateTempFile(cleanFileName, i+1, currentExt);
-                } else {
-                    tmpFiles[i+1] = generateTempFile(cleanFileName, i+1, outs);
-                    currentExt = outs;
-                }
-            }
+    			for (int i=0;i<sd.length;i++) {
 
-            out = GAT.createFile(outDir.toGATURI() + "/" + cleanFileName + currentExt);
+    				String ins = sd[i].inSuffix;
+    				String outs = sd[i].outSuffix;
 
-            ops = new Script[sd.length];
+    				if (!ins.equals("*") && !currentExt.equalsIgnoreCase(ins)) {
+    					error("Script output mismatch! "+ currentExt + " != " + ins);
+    					finish();
+    					return;
+    				}
 
-            for (int i=0;i<sd.length;i++) {
-                ops[i] = sd[i].createScript(tmpFiles[i], tmpFiles[i+1], id);
-            }
-        }
-    
-        state = STATE_COPY_IN;
+    				if (outs.equals("*")) {
+    					tmpFiles[i+1] = generateTempFile(cleanFileName, i+1, currentExt);
+    				} else {
+    					tmpFiles[i+1] = generateTempFile(cleanFileName, i+1, outs);
+    					currentExt = outs;
+    				}
+    			}
 
-        File tmp = GAT.createFile("file:///" + LocalConfig.get().tmpdir +
-                File.separator + tmpFiles[0]);
+    			out = GAT.createFile(outDir.toGATURI() + "/" + cleanFileName + currentExt);
 
-        System.out.println("Operation " + id + " submitting COPY_IN " + in +
-                " -> " + tmp);
+    			ops = new Script[sd.length];
 
-        executor.submit(new Copy(identifier(), id, in, tmp));
+    			for (int i=0;i<sd.length;i++) {
+    				ops[i] = sd[i].createScript(tmpFiles[i], tmpFiles[i+1], id);
+    			}
+    		}
 
-        long time = System.currentTimeMillis();
-        
-        System.out.println("Operation " + id + " init took " + (time-started));
-        
-        suspend();
+    		state = STATE_COPY_IN;
+
+    		File tmp = GAT.createFile("file:///" + LocalConfig.getTmpDir() + File.separator + tmpFiles[0]);
+
+    		LocalConfig.println(txt + ": Submitting COPY( " + in +	" -> " + tmp + ")");
+
+    		executor.submit(new Copy(identifier(), id, in, tmp));
+
+    		suspend();
+    		
+    	} catch (Exception e) {    		
+    		error(txt + " Got exception: " + e.getMessage(), e);
+    		finish();    	
+    	} finally {
+			time += System.currentTimeMillis() - start;
+    		LocalConfig.println(txt + ": Init took " + time);
+		}
     }
 
     @Override
-    public void process(Event e) throws Exception {
+    public void process(Event e) {
 
-        System.out.println("Operation " + id + " received event");
+    	long start = System.currentTimeMillis();
+    	
+    	try { 
+    		LocalConfig.println(txt + ": Received event");
 
-        Result res = (Result) e.data;
+    		Result res = (Result) e.data;
 
-        switch (state) {
-        case STATE_COPY_IN:
+    		switch (state) {
+    		case STATE_COPY_IN:
 
-            results[0] = res;
-            
-            copyInDone = System.currentTimeMillis();
-            
-            if (res.success()) {
-                if (ops != null && ops.length > 0) {
+    			results[0] = res;
 
-                    System.out.println("Operation " + id + " submitting SEQUENCE " + Arrays.toString(ops));
+    			if (res.success()) {
+    				if (ops != null && ops.length > 0) {
 
-                    state = STATE_FILTER;
-                    executor.submit(new Sequence(identifier(), id, ops));
-                    suspend();
+    					LocalConfig.println(txt + ": Submitting SEQUENCE(" + inputName + ") " + Arrays.toString(ops));
 
-                } else {
-                    state = STATE_COPY_OUT;
+    					state = STATE_FILTER;
+    					executor.submit(new Sequence(identifier(), id, inputName, ops));
+    					suspend();
 
-                    processingDone = copyInDone;
-                    
-                    File tmp = GAT.createFile("file:///" +
-                            LocalConfig.get().tmpdir + File.separator + tmpFiles[tmpFiles.length-1]);
+    				} else {
+    					state = STATE_COPY_OUT;
 
-                    System.out.println("Operation " + id + " submitting COPY_OUT "
-                            + tmp + " -> " + out);
+    					File tmp = GAT.createFile("file:///" + LocalConfig.getTmpDir() + File.separator + 
+    							tmpFiles[tmpFiles.length-1]);
 
-                    executor.submit(new Copy(identifier(), id, tmp, out));
-                    suspend();
-                }
-            } else {
-                state = STATE_ERROR;
-                System.out.println("Operation " + id +
-                     " FAILED: Failed to copy input file!\n" + res.getError());
-                finish();
-            }
-            break;
+    					LocalConfig.println(txt + ": Submitting COPY(" + tmp + " -> " + out + ")");
 
-        case STATE_FILTER:
+    					executor.submit(new Copy(identifier(), id, tmp, out));
+    					suspend();
+    				}
+    			} else {            	
+    				error("Failed to copy input file!");
+    				finish();
+    			}
+    			break;
 
-            results[1] = res;
+    		case STATE_FILTER:
 
-            processingDone = System.currentTimeMillis();
-            
-            if (res.success()) {
+    			results[1] = res;
 
-                state = STATE_COPY_OUT;
+    			if (res.success()) {
 
-                File tmp = GAT.createFile("file:///" +
-                        LocalConfig.get().tmpdir + File.separator + tmpFiles[tmpFiles.length-1]);
+    				state = STATE_COPY_OUT;
 
-                System.out.println("Operation " + id + " submitting COPY_OUT "
-                        + tmp + " -> " + out);
+    				File tmp = GAT.createFile("file:///" + LocalConfig.get().tmpdir + File.separator + tmpFiles[tmpFiles.length-1]);
 
-                executor.submit(new Copy(identifier(), id, tmp, out));
+    				LocalConfig.println(txt + ": Submitting COPY_OUT " + tmp + " -> " + out);
 
-                suspend();
-            } else {
-                state = STATE_ERROR;
-                System.out.println("Operation " + id +
-                       " FAILED: Failed to execute filter!\n" + res.getError());
-                finish();
-            }
-            break;
+    				executor.submit(new Copy(identifier(), id, tmp, out));
 
-        case STATE_COPY_OUT:
+    				suspend();
+    			} else {
+    				error("Failed to execute filter!");
+    				finish();
+    			}
+    			break;
 
-            results[2] = res;
+    		case STATE_COPY_OUT:
 
-            if (res.success()) {
+    			results[2] = res;
 
-            	copyOutDone = System.currentTimeMillis();
-            	
-                System.out.println("Operation " + id + " DONE");
+    			if (res.success()) {
+    				LocalConfig.println(txt + ": Done");
+    				state = STATE_DONE;
+    				finish();
+    			} else {
+    				error("Failed to copy output file!");
+    				finish();
+    			}
+    			break;
 
-                state = STATE_DONE;
-                finish();
-            } else {
-                state = STATE_ERROR;
-                System.out.println("Operation " + id +
-                     " FAILED: Failed to copy output file!\n" + res.getError());
-                finish();
-            }
-            break;
+    		default:
+    			error("Operation in illegal state! " + state);
+    			finish();
+    		}
 
-        default:
-            state = STATE_ERROR;
-            System.out.println("Operation " + id +
-                    " FAILED: Operation in illegal state! " + state);
-            finish();
-        }
+    	} catch (Exception ex) {
+    		error("Got exception!", ex);
+			finish();
+    	} finally { 
+    		time += System.currentTimeMillis() - start;
+    	}
     }
 }

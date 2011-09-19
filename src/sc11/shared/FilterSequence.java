@@ -1,8 +1,5 @@
 package sc11.shared;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,46 +42,6 @@ public class FilterSequence implements Serializable {
 
     public FilterSequence(String inputDir, String inputSuffix, String outputDir) {
         this(inputDir, inputSuffix, outputDir, null, null, 0);
-    }
-
-    public static FilterSequence read(DataInputStream in) throws IOException {
-
-        String inputDir = in.readUTF();
-        String inputSuffix = in.readUTF();
-        String outputDir = in.readUTF();
-
-        int count = in.readInt();
-
-        String [] filters = new String[count];
-
-        for (int i=0;i<count;i++) {
-            filters[i] = in.readUTF();
-        }
-
-        String site = in.readUTF();
-        int nodes = in.readInt();
-
-        return new FilterSequence(inputDir, inputSuffix, outputDir, filters, site, nodes);
-    }
-
-    public static void write(FilterSequence job, DataOutputStream out) throws IOException {
-
-        out.writeUTF(job.inputDir);
-        out.writeUTF(job.inputSuffix);
-        out.writeUTF(job.outputDir);
-
-        if (job.filters == null) {
-            out.writeInt(0);
-        } else {
-            out.writeInt(job.filters.length);
-
-            for (int i=0;i<job.filters.length;i++) {
-                out.writeUTF(job.filters[i]);
-            }
-        }
-
-        out.writeUTF(job.site);
-        out.writeInt(job.nodes);
     }
 
     @Override

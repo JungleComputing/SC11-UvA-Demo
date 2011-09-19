@@ -14,15 +14,10 @@ public class Job extends SimpleActivity {
     public Job(ActivityIdentifier parent, Script script) {
         super(parent, script.context, true);
         this.script = script;
-
-        System.out.println("Created new job with context " + script.context);
     }
 
     @Override
     public void simpleActivity() throws Exception {
-
-        System.out.println("Executing job " + identifier());
-
         executor.send(new Event(identifier(), parent, script.execute()));
     }
 }

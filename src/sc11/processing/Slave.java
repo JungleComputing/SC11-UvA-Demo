@@ -1,7 +1,5 @@
 package sc11.processing;
 
-import java.util.ArrayList;
-
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Executor;
@@ -22,8 +20,8 @@ public class Slave {
 		Executor [] e = new Executor[executors.length];
 
 		for (int i=0;i<executors.length;i++) {
-			System.out.println("Creating executor with context \"" +
-					executors[i] + "\"");
+			
+			LocalConfig.println("SLAVE: Creating executor with context \"" + executors[i] + "\"");
 
 			e[i] = new SimpleExecutor(StealPool.NONE, master,
 					new UnitWorkerContext(executors[i]), st, st, st);
@@ -38,8 +36,7 @@ public class Slave {
 			cn.activate();
 			cn.done();
         } catch (Exception e) {
-            System.err.println("Slave failed!");
-            e.printStackTrace(System.err);
+        	LocalConfig.println("SLAVE: Get exception!", e);
         }
     }
 }

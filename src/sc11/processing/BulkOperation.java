@@ -1,7 +1,6 @@
 package sc11.processing;
 
 import org.gridlab.gat.GAT;
-import org.gridlab.gat.GATObjectCreationException;
 import org.gridlab.gat.io.File;
 
 import sc11.shared.Result;
@@ -22,11 +21,15 @@ public class BulkOperation extends Activity {
     private final String filetype;
     private final String out;
 
+    private final String txt; 
+    
     private final ScriptDescription [] sd;
 
     private Result [] results;
     private int resultCount = 0;
-    private Result error;
+    
+    private String error;
+    private long time;
     private boolean done;
 
     public BulkOperation(Master parent, long id, String in, String filetype,
@@ -40,6 +43,8 @@ public class BulkOperation extends Activity {
         this.filetype = filetype;
         this.out = out;
         this.sd = sd;
+        
+        txt = "BULK(" + in + " -> " + out + "): ";
     }
 
     public long getID() {
@@ -54,18 +59,17 @@ public class BulkOperation extends Activity {
 
         if (done) {
             if (error != null) {
-                return error;
+            	return new Result(false, error, 0, results);
             }
-
-            return Result.merge(results);
+            
+            return new Result(true, txt +  "Done", time, results);
         }
 
         if (results == null) {
-            return new Result().setState("INIT");
+            return new Result("INITIALIZING");
         }
 
-        return new Result().setState("PROCESSING: " +
-                resultCount + " / " + results.length);
+        return new Result("PROCESSING: " + resultCount + " / " + results.length);
     }
 
     @Override
@@ -79,21 +83,19 @@ public class BulkOperation extends Activity {
 
     private synchronized void error(String message, Exception e) {
 
-        System.err.println("ERROR: " + message);
-
-        if (e != null) {
-            e.printStackTrace(System.err);
-        }
-
-        error = new Result().failed(message);
+        error = txt + " ERROR: " + message; 
         done = true;
+
+        LocalConfig.println(error, e);
     }
   
     @Override
     public void initialize() throws Exception {
 
-        System.out.println("BulkOperation " + id + " running...");
+        LocalConfig.println(txt + "Started.");
 
+        long startInit = System.currentTimeMillis();
+        
         try {
             // Check if input exists
             File input = GAT.createFile(in);
@@ -123,7 +125,7 @@ public class BulkOperation extends Activity {
                     return;
                 }
                 
-                System.out.println("BulkOperation " + id + " retrieving file list...");
+                LocalConfig.println(txt + "Retrieving file list.");
 
                 long start = System.currentTimeMillis();
                 
@@ -131,8 +133,7 @@ public class BulkOperation extends Activity {
 
                 long end = System.currentTimeMillis();
                 
-                System.out.println("BulkOperation " + id + " file list " +
-                		"retrieved in " + ((end-start)/1000.0) + " sec.");
+                LocalConfig.println(txt + "File list retrieved in " + ((end-start)/1000.0) + " sec.");
                 
                 if (tmp == null || tmp.length == 0) {
                     error("No input files in: " + in);
@@ -159,8 +160,10 @@ public class BulkOperation extends Activity {
             }
 
         } catch (Exception e) {
-            error("Unexpected error: " + e.getMessage(), e);
+        	error("Got Exception: " + e.getMessage(), e);
             finish();
+        } finally { 
+        	time += System.currentTimeMillis() - startInit;
         }
     }
 
@@ -186,6 +189,6 @@ public class BulkOperation extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        parent.done(this);
+        parent.done(this, getResult());
     }
 }

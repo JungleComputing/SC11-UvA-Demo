@@ -16,8 +16,6 @@ import java.util.HashMap;
 import sc11.shared.FilterSequence;
 import sc11.shared.Result;
 
-//import sc11.daemon.Proxy;
-
 public class Master {
 
     private final Constellation constellation;
@@ -45,8 +43,7 @@ public class Master {
         Executor [] e = new Executor[executors.length];
         
         for (int i=0;i<executors.length;i++) {
-        	System.out.println("Creating executor with context \"" +
-					executors[i] + "\"");
+        	LocalConfig.println("MASTER: Creating executor with context \"" + executors[i] + "\"");
         	
             e[i] = new SimpleExecutor(master, master,
                     new UnitWorkerContext(executors[i]), st, st, st);
@@ -89,7 +86,7 @@ public class Master {
         constellation.submit(o);
     }
 
-    public void done(BulkOperation o) {
+    public void done(BulkOperation o, Result r) {
 
         BulkOperation tmp;
 
@@ -97,17 +94,14 @@ public class Master {
             tmp = active.remove(o.getID());
 
             if (tmp == null) {
-                System.err.println("Failed to find operation: " + o.getID());
+                LocalConfig.println("MASTER: Failed to find operation: " + o.getID());
                 return;
             }
 
             terminated.put(o.getID(), o);
         }
 
-        Result r = o.getResult();
-        
-        System.out.println("Operation " + o.getID() + " terminated:\n" +
-                r.getOuput() + "\n" + r.getError());
+        LocalConfig.println("MASTER: BulkOperation " + o.getID() + " terminated:\n" + r);
     }
 
     public Result info(long id) throws Exception {
@@ -138,8 +132,6 @@ public class Master {
 
         if (fs.filters != null && fs.filters.length > 0) {
 
-        	System.out.println("Adding filter scripts:");
-        	
             scripts = new ScriptDescription[fs.filters.length];
 
             for (int i=0;i<fs.filters.length;i++) {
@@ -150,48 +142,21 @@ public class Master {
                     throw new Exception("Operation not found: " + fs.filters[i]);
                 }
                 
-                System.out.println("   " + scripts[i]);
+                LocalConfig.println("MASTER: Adding filter script " + scripts[i]);
             }
         } else { 
-         	System.out.println("No filter scripts added.");
+         	LocalConfig.println("MASTER: No filter scripts added.");
         }
 
-        BulkOperation o = new BulkOperation(this, id, fs.inputDir, 
-        		fs.inputSuffix, scripts, fs.outputDir);
+        BulkOperation o = new BulkOperation(this, id, fs.inputDir, fs.inputSuffix, scripts, fs.outputDir);
 
-        //Operation o = new Operation(this, id, in, scripts, out);
-
-        System.out.println("Submitting BulkOperation(" + id + ", " + fs.inputDir + ", " + fs.inputSuffix + ", " + fs.outputDir + ")");
+        LocalConfig.println("MASTER: Submit BulkOperation(" + id + ", " + fs.inputDir + ", " + fs.inputSuffix + ", " + 
+        		fs.outputDir + ")");
         
         submit(o);
 
         return id;
     }
-
-    /*
-    public int [] exec(String [] in, String [] ops, String [] out) {
-
-        // Various sanity checks
-        if (in == null || in.length == 0) {
-            throw new IllegalArgumentException("Illegal in list: " + in);
-        }
-
-        if (out == null || out.length == 0) {
-            throw new IllegalArgumentException("Illegal out list: " + in);
-        }
-
-        if (in.length != out.length) {
-            throw new IllegalArgumentException("Mismatch between in and out " +
-                    "list: " + in.length + " != " + out.length);
-        }
-
-
-        // Execute the operations for each of the input files
-        for (int i=0;i<in.length;i++) {
-            exec(in[i], ops, out[i]);
-        }
-    }
-    */
 
     public synchronized void done() {
         constellation.done();
@@ -209,73 +174,6 @@ public class Master {
             }
         }
     }     
-/*
-    public static void main(String [] args) {
-
-        try {
-            int port = 45678;
-            int executorCount = 1;
-            String config = null;
-            String tmpdir = null;
-            String scriptdir = null;
-
-            for (int i=0;i<args.length;i++) {
-
-                if (args[i].startsWith("--exec")) {
-                    executorCount = Integer.parseInt(args[++i]);
-                } else if (args[i].startsWith("--config")) {
-                    config = args[++i];
-                } else if (args[i].startsWith("--scriptdir")) {
-                    scriptdir = args[++i];
-                } else if (args[i].startsWith("--tmpdir")) {
-                    tmpdir = args[++i];
-              //  } else if (args[i].startsWith("--port")) {
-              //     port = Integer.parseInt(args[++i]);
-                } else {
-                    System.err.println("Unknown option " + args[i]);
-                    System.exit(1);
-                }
-            }
-
-            if (executorCount <= 0) {
-                System.err.println("Illegal executor count: " + executorCount);
-                System.exit(1);
-            }
-
-            if (config == null) {
-                System.err.println("No configuration specified!");
-                System.exit(1);
-            }
-
-            if (tmpdir == null) {
-                System.err.println("No tmpdir specified!");
-                System.exit(1);
-            }
-
-            if (scriptdir == null) {
-                System.err.println("No scriptdir specified!");
-                System.exit(1);
-            }
-
-            if (port <= 0 || port > 65535) {
-                System.err.println("Illegal port specified! " + port);
-                System.exit(1);
-            }
-
-            LocalConfig.set(tmpdir, scriptdir);
-
-            Master m = new Master(executorCount, config);
-
-            Proxy p = new Proxy(m, port);
-            p.start();
-            m.waitUntilDone();
-
-        } catch (Exception e) {
-            System.err.println("Master failed!");
-            e.printStackTrace(System.err);
-        }
-    }
-*/    
 }
 
 

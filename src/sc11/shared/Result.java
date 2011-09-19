@@ -1,128 +1,117 @@
 package sc11.shared;
 
+import java.io.PrintStream;
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class Result implements Serializable {
 
-    /** Generated */
+	/** Generated */
     private static final long serialVersionUID = -8163724771958330288L;
 
-    private boolean finished = false;
-    private boolean success = false;
-
-    private String state = "UNKNOWN";
-    private String output = "";
-    private String error = "";
-
-    public synchronized Result setState(String state) {
-        this.state = state;
-        return this;
+	private static final byte STATE_RUNNING = 1;
+	private static final byte STATE_DONE    = 2;
+	private static final byte STATE_ERROR   = 3;
+    
+    private final byte state;
+    public final long time;
+    public final String message;        
+    
+    public final Result [] sub; 
+    
+    public Result(String message) {    	
+    	this.message = message;
+    	state = STATE_RUNNING;
+    	time = 0;
+    	sub = null;    	
     }
-
-    public Result failed(String error) {
-        return failed("", error);
+        
+    public Result(Result other) {
+    	this.state = other.state;
+    	this.message = other.message;
+    	this.time = other.time;
+    	this.sub = other.sub;    			
     }
-
-    public synchronized Result failed(String output, String error) {
-        finished = true;
-        state = "ERROR";
-        this.output = output;
-        this.error = error;
-
-        return this;
+    
+    public Result(boolean success, String message, long time, Result [] sub) {    	
+    	this.sub = sub;
+    	
+    	byte s = STATE_DONE;
+    	long t = time;
+    	
+    	if (!success) { 
+    		s = STATE_ERROR;
+    	}
+    	
+    	this.message = message;
+    	
+    	if (sub != null) {    		
+    		for (int i=0;i<sub.length;i++) { 
+    			if (sub[i] != null && sub[i].state == STATE_ERROR) { 
+    				s = STATE_ERROR;
+    			}
+    			
+    			t += sub[i].time;
+    		}    		
+    	}
+    	    	
+    	this.time = t;
+    	this.state = s;
     }
-
-    public Result success(String output) {
-        return success(output, "");
+    
+    public Result(boolean success, String message, long time) {
+    	this(success, message, time, null);
     }
-
-    public synchronized Result success(String output, String error) {
-        finished = true;
-        success = true;
-        state = "DONE";
-        this.output = output;
-        this.error = error;
-
-        return this;
+    
+    public Result(boolean success, String message) {
+    	this(success, message, 0, null);
     }
-
-    public synchronized boolean finished() {
-        return finished;
+    
+    
+    public boolean isFinished() {
+        return (state == STATE_DONE || state == STATE_ERROR);
     }
-
-    public synchronized String getState() {
-        return state;
+    
+    public boolean success() {
+        return (state == STATE_DONE);
     }
-
-    public synchronized boolean success() {
-        return success;
+    
+    public String state() { 
+    	switch (state) { 
+    	case STATE_RUNNING: 
+    		return "RUNNING";
+    	case STATE_DONE:
+    		return "DONE";
+    	case STATE_ERROR:
+    		return "ERROR";    		
+    	default:
+    		return "UNKNOWN";
+    	}
     }
-
-    public synchronized String getOuput() {
-        return output;
-    }
-
-    public synchronized String getError() {
-        return error;
-    }
-
-    public synchronized Result copy(Result other) {
-        finished = other.finished;
-        success = other.success;
-        state = other.state;
-        output = other.output;
-        error = other.output;
-        return this;
-    }
-
+    
     @Override
     public String toString() {
-        return "Result [finished=" + finished + ", success=" + success
-                + ", state=" + state + ", output=" + output + ", error="
-                + error + "]";
+        return "Result [state=" + state + ", message=" + message + ", time=" + time + "sub=" + Arrays.toString(sub) + "]";
     }
 
-    private static void append(StringBuilder out, String txt) {
-
-        if (txt != null) {
-            txt = txt.trim();
-
-            if (txt.length() > 0) {
-                out.append(txt);
-
-                if (!txt.endsWith("\n")) {
-                    out.append("\n");
-                }
-            }
-        }
+    private void prettyPrint(PrintStream out, String prefix) {
+		out.println(prefix + state() + " / " + time + " / " + message);
+		
+		if (sub == null) { 
+			return;
+		}
+		
+		for (int i=0;i<sub.length;i++) {			
+			if (sub[i] == null) {
+				out.println(prefix + "  - empty -");
+			} else {  
+				prettyPrint(out, prefix + "  ");
+			}
+		}
     }
-
-    public static Result merge(Result [] results) {
-
-        StringBuilder out = new StringBuilder();
-        StringBuilder err = new StringBuilder();
-
-        Result last = null;
-
-        for (int i=0;i<results.length;i++) {
-
-            if (results[i] != null) {
-                append(out, results[i].getOuput());
-                append(err, results[i].getError());
-                last = results[i];
-            }
-        }
-
-        Result tmp = new Result();
-
-        if (last != null && last.success()) {
-            tmp.success(out.toString(), err.toString());
-        } else {
-            tmp.failed(out.toString(), err.toString());
-        }
-
-        return tmp;
-    }
-
-
+    
+	public void prettyPrint(PrintStream out) {
+		out.print("Result / ");
+		prettyPrint(out, "");
+	}
 }

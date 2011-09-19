@@ -33,13 +33,17 @@ public class Script implements Serializable {
         this.context = context;
     }
 
-    private String cleanup(byte [] output) {
-        return new String(output).trim();
-    }
+    private String output(RunProcess p) {
 
+    	String out = new String(p.getStdout()).trim();
+    	String err = new String(p.getStderr()).trim();
+    
+    	return "stdout: " + out + "\nstderr: " + err; 
+    }
+    
     public Result execute() {
 
-        LocalConfig config = LocalConfig.get();
+    	LocalConfig config = LocalConfig.get();
 
         String [] command = new String [] {
                 config.scriptdir + File.separator + script,
@@ -47,8 +51,8 @@ public class Script implements Serializable {
                 config.tmpdir + File.separator + output,
         };
 
-        System.out.println("Executing: " + Arrays.toString(command));
-
+        LocalConfig.println("Script executing: " + Arrays.toString(command));
+        
         long start = System.currentTimeMillis();
         
         RunProcess p = new RunProcess(command);
@@ -56,17 +60,9 @@ public class Script implements Serializable {
 
         long end = System.currentTimeMillis();        
         
-        System.out.println("Done: " + Arrays.toString(command) + " " + (end-start));
-
-        Result r = new Result();
-
-        if (p.getExitStatus() != 0) {
-            r.failed(cleanup(p.getStdout()), cleanup(p.getStderr()));
-        } else {
-            r.success(cleanup(p.getStdout()), cleanup(p.getStderr()));
-        }
-
-        return r;
+        LocalConfig.println("Script done: " + Arrays.toString(command) + " " + (end-start));
+        
+        return new Result(p.getExitStatus() == 0, output(p), (end-start));
     }
 
     @Override

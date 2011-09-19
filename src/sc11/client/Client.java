@@ -42,12 +42,22 @@ public class Client {
             
             Result result = null;
             
+            String oldMessage = null;
+            
             while (!done) { 
             	try {
                     Thread.sleep(100);
-                    result = s.info(id);                    
-                    System.out.println("Current state: " + result.getState());                    
-                    done = result.finished();                    
+                    result = s.info(id);    
+                    
+                    done = result.isFinished();
+                    
+                    if (!done) { 
+                    	
+                    	if (oldMessage == null || !oldMessage.equals(result.message)) { 
+                    		oldMessage = result.message;
+                    		System.out.println("Current state: " + result.message);
+                    	}
+                    }                                    
                 } catch (Exception e) {
                 	System.out.println("Operation failed: " + e.getMessage());
                 	done = true;
@@ -55,8 +65,7 @@ public class Client {
             } 
 
             if (result != null) { 
-            	System.out.println("Result:\n" + result.getOuput() + "\n" + 
-            			result.getError());
+            	result.prettyPrint(System.out);            	
             }
             
             s.close();

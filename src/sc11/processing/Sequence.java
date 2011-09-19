@@ -16,9 +16,11 @@ public class Sequence extends Activity {
     private final Script [] sequence;
     private final Result [] results;
 
+    private String txt;
+    
     private int index = 0;
 
-    public Sequence(ActivityIdentifier parent, long id, Script [] sequence) {
+    public Sequence(ActivityIdentifier parent, long id, String inputName, Script [] sequence) {
         super(new UnitActivityContext("slave", id), true);
 
         if (sequence == null || sequence.length == 0) {
@@ -26,6 +28,7 @@ public class Sequence extends Activity {
         }
 
         this.parent = parent;
+        this.txt = "SEQUENCE(" + inputName + ")";
         this.sequence = sequence;
         this.results = new Result[sequence.length];
     }
@@ -48,17 +51,17 @@ public class Sequence extends Activity {
 
     @Override
     public void process(Event e) throws Exception {
-        results[index] = (Result) e.data;
+    	Result tmp = (Result) e.data;
+    	
+        results[index] = tmp;
 
-        if (!results[index].success() || index == sequence.length-1) {
-
-            System.out.println("Sequence done!");
-
-            executor.send(new Event(identifier(), parent, Result.merge(results)));
+        if (!tmp.success() || index == sequence.length-1) {
+        	LocalConfig.println(txt + ": Done!");
+            executor.send(new Event(identifier(), parent, new Result(tmp.success(), txt + ": Done", 0, results)));            
             finish();
         } else {
             index++;
-            System.out.println("Sequence submitting " + (index+1));
+            LocalConfig.println(txt + ": Submitting stage " + (index+1));
             executor.submit(new Job(identifier(), sequence[index]));
             suspend();
         }

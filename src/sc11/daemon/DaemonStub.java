@@ -2,9 +2,9 @@ package sc11.daemon;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -15,15 +15,15 @@ public class DaemonStub {
 
     private Socket s;
 
-    private DataInputStream in;
-    private DataOutputStream out;
+    private ObjectInputStream in;
+    private ObjectOutputStream out;
 
     public DaemonStub(String host, int port) throws UnknownHostException, IOException {
 
         s = new Socket(host, port);
 
-        in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
-        out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+        in = new ObjectInputStream(new BufferedInputStream(s.getInputStream()));
+        out = new ObjectOutputStream(new BufferedOutputStream(s.getOutputStream()));
     }
 
     public long exec(FilterSequence job) throws IOException {
@@ -31,42 +31,40 @@ public class DaemonStub {
         System.out.println("Stub write: " + job);
     	
         out.write(Protocol.OPCODE_EXEC);
-        FilterSequence.write(job, out);
+        out.writeObject(job);
         out.flush();
 
-        // TODO: may return -1 on EOS
         int opcode = in.read();
 
         switch (opcode) {
+        case -1:
+            throw new IOException("Connection to daemon lost!");           
         case Protocol.OPCODE_ACCEPT:
             return in.readLong();
         case Protocol.OPCODE_ERROR:
             throw new IOException(in.readUTF());
         default:
-            throw new IOException("Unexpected reply! " + opcode);
+            throw new IOException("Unexpected reply: " + opcode);
         }
     }
 
-    public Result info(long id) throws IOException {
+    public Result info(long id) throws Exception {
 
         out.write(Protocol.OPCODE_INFO);
         out.writeLong(id);
         out.flush();
 
-        // TODO: may return -1 on EOS
         int opcode = in.read();
 
         switch (opcode) {
         case -1:
-        	return new Result().failed("Connection to lost!");
-        case Protocol.OPCODE_RUNNING:
-        	return new Result().setState(in.readUTF());
-        case Protocol.OPCODE_DONE:
-        	return new Result().success(in.readUTF());
+            throw new IOException("Connection to daemon lost!");           
         case Protocol.OPCODE_ERROR:
-        	return new Result().failed(in.readUTF());
+            throw new IOException(in.readUTF());
+        case Protocol.OPCODE_RESULT:
+        	return (Result) in.readObject();
         default:
-        	return new Result().failed("Unexpected reply! " + opcode);
+            throw new IOException("Unexpected reply: " + opcode);
         }
     }
 
