@@ -9,6 +9,15 @@ import sc11.shared.Result;
 import ibis.constellation.ActivityContext;
 import ibis.util.RunProcess;
 
+/** 
+ * This class represents a specific instance of a script that needs to be executed. 
+ * 
+ * Unlike {@link ScriptDescription}, which contains a generic description of a script, this class represents a specific instance 
+ * of a script, including the names of its in and output files, and the desired output file extension. 
+ * 
+ * @author jason@cs.vu.nl
+ *
+ */
 public class Script implements Serializable {
 
     /** Generated */
@@ -22,8 +31,17 @@ public class Script implements Serializable {
     public final String inSuffix;
     public final String outSuffix;
 
-    public Script(String script, String input, String output, String inSuffix,
-            String outSuffix, ActivityContext context) {
+    /** 
+     * Creates a new Script instance. 
+     * 
+     * @param script the script to execute.
+     * @param input the input file name.
+     * @param output the output file name.
+     * @param inSuffix the input file extension.
+     * @param outSuffix the output file extension.
+     * @param context the context in which this script needs to run. 
+     */
+    public Script(String script, String input, String output, String inSuffix, String outSuffix, ActivityContext context) {
         super();
         this.script = script;
         this.input = input;
@@ -33,6 +51,7 @@ public class Script implements Serializable {
         this.context = context;
     }
 
+    // Converts the stdout and stderr produced by the script into a single string. 
     private String output(RunProcess p) {
 
     	String out = new String(p.getStdout()).trim();
@@ -51,6 +70,11 @@ public class Script implements Serializable {
     	return result; 
     }
     
+    /** 
+     * Executes the script and returns the result.
+     * 
+     * @return the result of executing the script.
+     */
     public Result execute() {
 
     	LocalConfig config = LocalConfig.get();

@@ -15,7 +15,7 @@ import sc11.shared.FilterSequence;
 import sc11.shared.Result;
 
 /**
- * This is the main application's main class.
+ * This is the processing application's main class.
  *
  *
  * @author jason@cs.vu.nl

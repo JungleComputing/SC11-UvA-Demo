@@ -26,8 +26,15 @@ public class Sequence extends Activity {
 
     private int index = 0;
 
-    public Sequence(ActivityIdentifier parent, long id, String inputName, Script [] sequence) {
-        super(new UnitActivityContext("slave", id), true);
+    /** 
+     * Create a new sequence activity that applies a series of scripts to the input file. 
+     * @param parent the activity to send the result to.
+     * @param rank the rank of this sequence.
+     * @param inputName the name of the input file.
+     * @param sequence the sequence of scripts to apply.
+     */ 
+    public Sequence(ActivityIdentifier parent, long rank, String inputName, Script [] sequence) {
+        super(new UnitActivityContext("slave", rank), true);
 
         if (sequence == null || sequence.length == 0) {
             throw new IllegalArgumentException("Illegal sequence");
@@ -48,13 +55,22 @@ public class Sequence extends Activity {
     public void cleanup() throws Exception {
         // ignored
     }
-
+    
+    /**
+     * In the initial run of the sequence activity, the first script in the sequence is submitted.
+     */
     @Override
     public void initialize() throws Exception {
         executor.submit(new Job(identifier(), sequence[0]));
         suspend();
     }
 
+    /** 
+     * Processes event (results of scripts submitted earlier).
+     * 
+     * Depending on the result and the position in the processing pipeline, the next sequence is submitted, 
+     * or the result is send to the parent.
+     */ 
     @Override
     public void process(Event e) throws Exception {
         Result tmp = (Result) e.data;
