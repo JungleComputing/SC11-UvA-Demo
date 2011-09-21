@@ -3,6 +3,7 @@ package sc11.daemon;
 import java.io.File;
 import java.util.HashMap;
 
+import sc11.processing.Master;
 import sc11.shared.FilterSequence;
 import sc11.shared.Result;
 
@@ -16,6 +17,16 @@ import ibis.deploy.JobDescription;
 import ibis.deploy.State;
 import ibis.deploy.Workspace;
 
+/**
+ * This Daemon class is responsible for deploying and managing the necessary resources to process one or more
+ * {@link FilterSequence}s.
+ *
+ * These {@link FilterSequence}s are typically provided by a {@link DaemonProxy}, with in turn receives it from a remote
+ * {@link DaemonStub}. This Daemon then uses Ibis {@link Deploy} to deploy an application to the specified cluster which then
+ * performs the necessary file transfers and processing.
+ *
+ * @author jason@cs.vu.nl
+ */
 public class Daemon {
 
     private final int defaultSize;
@@ -30,8 +41,11 @@ public class Daemon {
     private final ApplicationSet applications;
     private final Experiment experiment;
 
+    private final boolean verbose;
+
     private long id = 0;
 
+    // This class contains all information of a single running FilterSequence.
     private class ProcessingJob {
 
         final long id;
@@ -45,8 +59,7 @@ public class Daemon {
 
         boolean done = false;
 
-        ProcessingJob(long id, FilterSequence work,
-                ibis.deploy.Job master, ibis.deploy.Job slaves) {
+        ProcessingJob(long id, FilterSequence work, ibis.deploy.Job master, ibis.deploy.Job slaves) {
             this.id = id;
             this.work = work;
             this.master = master;
@@ -70,16 +83,24 @@ public class Daemon {
         }
     }
 
-    private HashMap<Long, ProcessingJob> jobs =
-            new HashMap<Long, ProcessingJob>();
+    private HashMap<Long, ProcessingJob> jobs = new HashMap<Long, ProcessingJob>();
 
-    public Daemon(String gridname, int size, String site, boolean verbose)
-            throws Exception {
+    /**
+     * Creates a new Daemon capable of deploying to the sites described in "gridFile".
+     *
+     * @param gridFile the Ibis Deploy configuration file to use.
+     * @param defaultSize the default number of nodes to deploy to.
+     * @param defaultSite the default grid site to use.
+     * @param verbose be verbose ?
+     * @throws Exception if the IbisDeploy configuration was not found.
+     */
+    public Daemon(String gridFile, int defaultSize, String defaultSite, boolean verbose) throws Exception {
 
-        defaultSize = size;
-        defaultSite = site;
+        this.defaultSize = defaultSize;
+        this.defaultSite = defaultSite;
+        this.verbose = verbose;
 
-        grid = new Grid(new File(gridname));
+        grid = new Grid(new File(gridFile));
         experiment = new Experiment("SC11-UvA-Demo");
         applications = new ApplicationSet();
 
@@ -88,7 +109,7 @@ public class Daemon {
         deploy = new Deploy(new File("deploy-workspace"), verbose, false, 0,
                 null, null, true);
 
-        server = new ContactServer(this, deploy.getServerAddress());
+        server = new ContactServer(this, deploy.getServerAddress(), verbose);
 
         /*
         if (useGui) {
@@ -99,13 +120,14 @@ public class Daemon {
          */
     }
 
+    // Get a unique ID
     private synchronized long getID() {
         return id++;
     }
 
-    private Application createApplication(String name, String libs,
-            String config, String tmpDir, String scriptDir,
-            String master, long id, String executors) throws Exception {
+    // Create an application description.
+    private Application createApplication(String name, String libs, String config, String tmpDir, String scriptDir, String master,
+            long id, String executors) throws Exception {
 
         Application m = new Application(name);
 
@@ -125,16 +147,20 @@ public class Daemon {
         m.setSystemProperty("sc11.ID", "" + id);
         m.setSystemProperty("sc11.executors", executors);
         m.setSystemProperty("sc11.verbose", "true");
-        
-        m.setJVMOptions("-classpath",
-                libs + "sc11-application-0.2.0.jar:" +
-                        libs + "constellation-0.7.0.jar:" +
-                        libs + "javagat" + File.separator + "*:" +
-                        libs + "ipl" + File.separator + "*");
+
+        m.setJVMOptions("-classpath", libs + "sc11-application-0.2.0.jar:" + libs + "constellation-0.7.0.jar:" +
+                        libs + "javagat" + File.separator + "*:" + libs + "ipl" + File.separator + "*");
 
         return m;
     }
 
+    /**
+     * Execute the given FilterSequence by deploying the necessary application to the preferred site.
+     *
+     * @param job the FilterSequence to execute.
+     * @return a unique ID that can be used to retrieve information on the execution status of the FilterSequence.
+     * @throws Exception if the deployment failed.
+     */
     public long exec(FilterSequence job) throws Exception {
 
         // First we get an unique ID.
@@ -143,6 +169,7 @@ public class Daemon {
         // Next, we extract some information about the job
         int workers = defaultSize;
 
+        // Ensure that the node count and site have a valid value.
         if (job.nodes > 0) {
             workers = job.nodes;
         }
@@ -153,23 +180,22 @@ public class Daemon {
             site = job.site;
         }
 
-        System.out.println("Daemon executing Job [" + id + "] on " + site + "/"
-                + workers + " : " + job);
+        if (verbose) {
+            System.out.println("Daemon executing Job [" + id + "] on " + site + "/" + workers + " : " + job);
+        }
 
         // Next retrieve the cluster we will run on.
         Cluster cluster = grid.getCluster(site);
 
         if (cluster == null) {
-            throw new Exception("Cluster \"" + site + "\"not found in grid " +
-                    "description file.");
+            throw new Exception("Cluster \"" + site + "\"not found in grid description file.");
         }
 
         // Get some info from the cluster.
         String location = cluster.getProperties().getProperty("sc11.location");
 
         if (location == null) {
-            throw new Exception("sc11.location property not set for cluster \""
-                    + site + "\" in grid description file.");
+            throw new Exception("sc11.location property not set for cluster \"" + site + "\" in grid description file.");
         }
 
         String tmpDir = cluster.getProperties().getProperty("sc11.tmp");
@@ -183,13 +209,13 @@ public class Daemon {
         if (execM == null) {
             execM = "master:24";
         }
-                        
+
         String execS = cluster.getProperties().getProperty("sc11.executors.slave");
 
         if (execS == null) {
             execS = "slave:16";
         }
-        
+
         String config = location + File.separator + "scripts" +
                 File.separator + "configuration";
 
@@ -214,8 +240,7 @@ public class Daemon {
 
         // Only submit the slaves if there is some processing to be done.
         if (job.filters != null && job.filters.length > 0) {
-            Application s = createApplication("SC11-Slave", libs, config,
-                    tmpDir, scriptDir, "false", id, execS);
+            Application s = createApplication("SC11-Slave", libs, config, tmpDir, scriptDir, "false", id, execS);
 
             JobDescription js = new JobDescription("SC11-Slave-" + id);
             experiment.addJob(js);
@@ -238,21 +263,27 @@ public class Daemon {
         return id;
     }
 
+    // Add a ProcessingJob to the hash.
     private synchronized void addJob(ProcessingJob job) {
         jobs.put(job.id, job);
     }
 
+    // Find a ProcessingJob in the hash.
     private synchronized ProcessingJob getJob(long id) {
         return jobs.get(id);
     }
 
+    // Remove a ProcessingJob from the hash.
     private synchronized ProcessingJob removeJob(long id) {
         return jobs.remove(id);
     }
 
+    // Terminate a running job by killing the master and slaves.
     private void terminateJob(ProcessingJob job) {
 
-        System.out.println("Terminating job " + job.id);
+        if (verbose) {
+            System.out.println("Terminating job " + job.id);
+        }
 
         if (!job.master.isFinished()) {
             try {
@@ -275,6 +306,12 @@ public class Daemon {
         removeJob(job.id);
     }
 
+    /**
+     * Retrieve the current state or result for the {@link FilterSequence} identified by "id".
+     *
+     * @param id the unique ID of the {@link FilterSequence}.
+     * @return the current state, the final results, or an error if the ID is not known.
+     */
     public Result info(long id) {
 
         ProcessingJob job = getJob(id);
@@ -312,11 +349,13 @@ public class Daemon {
         }
     }
 
-    public static void fatal(String message) {
+    // Print an error message and exit.
+    private static void fatal(String message) {
         fatal(message, null);
     }
 
-    public static void fatal(String message, Exception e) {
+    // Print an error message (with stacktrace) and exit.
+    private static void fatal(String message, Exception e) {
         System.err.println(message);
 
         if (e != null) {
@@ -327,7 +366,15 @@ public class Daemon {
         System.exit(1);
     }
 
-
+    /**
+     * This call is part of the {@link DaemonInterface} and is used by the application {@link Master} to retrieve a
+     * {@link FilterSequence} that is will subsequently execute.
+     *
+     * @param id a unique ID for the {@link Master} sending the request. This ID determines which {@link FilterSequence} will be
+     *         returned.
+     * @return the {@link FilterSequence} that needs to be executed.
+     * @throws Exception if the ID is not known.
+     */
     public FilterSequence getWork(long id) throws Exception {
 
         ProcessingJob p = getJob(id);
@@ -336,14 +383,25 @@ public class Daemon {
             throw new Exception("Job " + id + " not found!");
         }
 
-        System.out.println("Get work for [" + id + "]: " + p.work);
+        if (verbose) {
+            System.out.println("Get work for [" + id + "]: " + p.work);
+        }
 
         return p.work;
     }
 
+    /**
+     * This call is part of the {@link DaemonInterface} and is used by the application {@link Master} to inform the Daemon of its
+     * current execution status. It is also use to return the final result.
+     *
+     * @param id a unique ID for the {@link Master} sending the request.
+     * @param res the current execution status or final result of the {@link FilterSequence} execution.
+     */
     public void setStatus(long id, Result res) {
 
-        System.out.println("Set status for [" + id + "]: " + res);
+        if (verbose) {
+            System.out.println("Set status for [" + id + "]: " + res);
+        }
 
         ProcessingJob p = getJob(id);
 
@@ -354,9 +412,17 @@ public class Daemon {
         p.setStatus(res);
     }
 
+    /**
+     * This call is part of the {@link DaemonInterface} and is used by the application {@link Master} to inform the Daemon that it
+     * has finished processing.
+     *
+     * @param id a unique ID for the {@link Master} sending the request.
+     */
     public void done(long id) {
 
-        System.out.println("Work done for [" + id + "]");
+        if (verbose) {
+            System.out.println("Work done for [" + id + "]");
+        }
 
         ProcessingJob p = getJob(id);
 
@@ -402,7 +468,9 @@ public class Daemon {
             Daemon d = new Daemon(grid, size, site, verbose);
             DaemonProxy p = new DaemonProxy(d, port);
 
-            System.out.println("Daemon waiting for input!");
+            if (verbose) {
+                System.out.println("Daemon waiting for input!");
+            }
 
             p.run(); // Note: we intentionally use run here (not start).
         } catch (Exception e) {

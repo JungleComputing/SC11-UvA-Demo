@@ -6,6 +6,12 @@ import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Event;
 import ibis.constellation.context.UnitActivityContext;
 
+/**
+ * This Activity represents a sequence of Scripts to be applied to a file.
+ *
+ * @author jason@cs.vu.nl
+ */
+
 public class Sequence extends Activity {
 
     /** Generated */
@@ -17,7 +23,7 @@ public class Sequence extends Activity {
     private final Result [] results;
 
     private String txt;
-    
+
     private int index = 0;
 
     public Sequence(ActivityIdentifier parent, long id, String inputName, Script [] sequence) {
@@ -51,15 +57,15 @@ public class Sequence extends Activity {
 
     @Override
     public void process(Event e) throws Exception {
-    	Result tmp = (Result) e.data;
-    	
+        Result tmp = (Result) e.data;
+
         results[index] = tmp;
 
         boolean ok = tmp.isSuccess();
-        
+
         if (!ok || index == sequence.length-1) {
-        	LocalConfig.println(txt + ": " + (ok ? "OK" : "ERROR"));
-            executor.send(new Event(identifier(), parent, new Result(txt, ok, (ok ? "OK" : "ERROR"), 0, results)));            
+            LocalConfig.println(txt + ": " + (ok ? "OK" : "ERROR"));
+            executor.send(new Event(identifier(), parent, new Result(txt, ok, (ok ? "OK" : "ERROR"), 0, results)));
             finish();
         } else {
             index++;
