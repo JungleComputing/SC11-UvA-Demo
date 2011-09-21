@@ -12,6 +12,12 @@ import java.net.SocketTimeoutException;
 import sc11.shared.FilterSequence;
 import sc11.shared.Result;
 
+/**
+ * A DaemonProxy that can accept incoming request from remote {@link DaemonStub}s and forward them to a {@link Daemon}. Any 
+ * results produced are returned to the {@link DaemonStub}.
+ * 
+ * @author jason@cs.vu.nl
+ */
 public class DaemonProxy extends Thread {
 
     private final ServerSocket ss;
@@ -19,9 +25,15 @@ public class DaemonProxy extends Thread {
 
     private boolean done = false;
 
-    private class Connection extends Thread {
-        private Socket s;
-
+    /** 
+     * This class represents a single connection with a {@link DaemonStub}. By extending {@link Thread} it can actively read and
+     * write requests from and to the underlying network connection.      
+     * 
+     * @author jason@cs.vu.nl
+     */
+    class Connection extends Thread {
+    
+    	private Socket s;
         private ObjectInputStream in;
         private ObjectOutputStream out;
 
@@ -33,9 +45,10 @@ public class DaemonProxy extends Thread {
             in = new ObjectInputStream(new BufferedInputStream(s.getInputStream()));
         }
 
+        // Forward an exec request to the daemon. 
         private void handleExec(FilterSequence job) throws IOException {
 
-            System.out.println("PROXY read: " + job);
+            //System.out.println("PROXY read: " + job);
             
             long id = -1;
             Exception ex = null;
@@ -57,6 +70,7 @@ public class DaemonProxy extends Thread {
             out.flush();
         }
 
+        // Forward an info request to the daemon.
         private void handleInfo(long id) throws IOException {
 
             Result res = null;
@@ -79,6 +93,7 @@ public class DaemonProxy extends Thread {
             out.flush();
         }
 
+        // Close the connection. 
         private void close() {
             try {
                 out.close();
@@ -99,6 +114,9 @@ public class DaemonProxy extends Thread {
             }
         }
 
+        /** 
+         * Runs the connection handler thread for a single connection to a {@link DaemonStub}.
+         */
         public void run() {
 
             boolean done = false;
@@ -143,31 +161,48 @@ public class DaemonProxy extends Thread {
         }
     }
 
+    /** 
+     * Create a DaemonProxy that can accept incoming remote request and forward them to the given {@link Daemon}.
+     * 
+     * @param master the {@link Daemon} to forward the request to. 
+     * @param port the network port on which incoming connections are accepted. 
+     * @throws IOException creation of the network socket failed. 
+     */
     public DaemonProxy(Daemon master, int port) throws IOException {
         this.master = master;
         ss = new ServerSocket(port);
     }
 
-    public synchronized long exec(FilterSequence job) throws Exception {
+    // Forward an exec request to the daemon.
+    private synchronized long exec(FilterSequence job) throws Exception {
         return master.exec(job);
     }
 
-    public synchronized Result info(long id) throws Exception {
+    // Forward an info request to the daemon.
+    private synchronized Result info(long id) throws Exception {
         return master.info(id);
     }
 
+    // Retrieves the done flag. 
     private synchronized boolean getDone() {
         return done;
     }
-
+   
+    /**
+     * Tell the DaemonProxy to terminate. 
+     */
     public synchronized void done() {
         done = true;
     }
 
+    /** 
+     * Runs the main loop of the Thread accepting the incoming connections from the {@link DaemonStub}. 
+     */
     public void run() {
 
         try {
-            ss.setSoTimeout(1000);
+        	// Periodically wake up (every 1000ms). This simplifies termination.   
+        	ss.setSoTimeout(1000);
 
             while (!getDone()) {
 

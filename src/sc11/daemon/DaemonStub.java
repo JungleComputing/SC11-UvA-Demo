@@ -14,10 +14,17 @@ import sc11.shared.Result;
 public class DaemonStub {
 
     private Socket s;
-
     private ObjectInputStream in;
     private ObjectOutputStream out;
 
+    /** 
+     * Creates a DaemonStub that connects to the {@link DaemonProxy} on the given host:port address.
+     * 
+     * @param host target host
+     * @param port target port
+     * @throws UnknownHostException the host is not found. 
+     * @throws IOException the connection setup fails.
+     */
     public DaemonStub(String host, int port) throws UnknownHostException, IOException {
 
         s = new Socket(host, port);
@@ -27,6 +34,14 @@ public class DaemonStub {
         out.flush();
     }
 
+    /**
+     * Forward a {@link FilterSequence} to the {@link DaemonProxy} for execution. 
+     * 
+     * @param job the {@link FilterSequence} to execute.
+     * @return a unique identifier that can be used to retrieve the execution state and result. 
+     * @throws IOException the connection fails. 
+     */
+    
     public long exec(FilterSequence job) throws IOException {
 
         System.out.println("Stub write: " + job);
@@ -49,6 +64,13 @@ public class DaemonStub {
         }
     }
 
+    /** 
+     * Request information on the state of an execution from the {@link DaemonProxy}.
+     * 
+     * @param id the identifier of the execution. 
+     * @return a {@link Result} object containing the current execution state. 
+     * @throws Exception 
+     */
     public Result info(long id) throws Exception {
 
         out.write(Protocol.OPCODE_INFO);
@@ -69,6 +91,9 @@ public class DaemonStub {
         }
     }
 
+    /** 
+     * Close the connection to the {@link DaemonProxy}.
+     */    
     public void close() {
 
         try {

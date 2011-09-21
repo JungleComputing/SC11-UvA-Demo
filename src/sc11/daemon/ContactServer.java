@@ -14,6 +14,17 @@ import java.util.Properties;
 import sc11.shared.FilterSequence;
 import sc11.shared.Result;
 
+/**
+ * This ContactServer servers as the a proxy for the {@link Daemon} object implementing the {@link DaemonInterface}.
+ * 
+ * It creates an {@link Ibis} pool and exports itself as {@link DaemonInterface}. Any calls to this {@link DaemonInterface} are 
+ * forwarded to the associated {@link Daemon}. 
+ * 
+ * In addition, this class implements a {@link RegistryEventHandler}. This allows it to print information about the participating 
+ * clients.   
+ * 
+ * @author jason@cs.vu.nl
+ */
 public class ContactServer implements RegistryEventHandler, DaemonInterface {
 
 	private final IbisCapabilities capabilities = new IbisCapabilities(
@@ -25,6 +36,13 @@ public class ContactServer implements RegistryEventHandler, DaemonInterface {
 	
 	private final RemoteObject<DaemonInterface> remoteObject;
 	
+	/**
+	 * Create a ContactServer that represents the given {@link Daemon}. 
+	 * 
+	 * @param parent the {@link Daemon} to represent. 
+	 * @param address the address of the {@link Ibis} registry to connect to. 
+	 * @throws Exception the ContactServer failed contact the registry or failed to export the {@link DaemonInterface}.
+	 */
 	public ContactServer(Daemon parent, String address) throws Exception { 
 
 		System.out.println("Creating Ibis Contact using server: " + address);
@@ -46,7 +64,10 @@ public class ContactServer implements RegistryEventHandler, DaemonInterface {
 		System.out.println("Ibis Contact created!");
 		
 	}
-
+	
+	/** 
+	 * Terminate the ContactServer.
+	 */
 	public void terminate() {
 		
 		try { 
@@ -66,7 +87,6 @@ public class ContactServer implements RegistryEventHandler, DaemonInterface {
 	}
 	
 	/** Registry interface **/
-
 	@Override
 	public void died(IbisIdentifier id) {
 		System.out.println("Ibis died: " + id);
@@ -101,11 +121,10 @@ public class ContactServer implements RegistryEventHandler, DaemonInterface {
 	public void poolTerminated(IbisIdentifier id) {
 		// ignored
 	}
-	
 	/** End of Registry interface **/
 	
-	/** DaemonInterface **/
 
+	/** DaemonInterface **/
 	@Override
 	public FilterSequence getWork(long id) throws RemoteException, Exception {
 		return parent.getWork(id);
@@ -120,6 +139,5 @@ public class ContactServer implements RegistryEventHandler, DaemonInterface {
 	public void done(long id) throws RemoteException, Exception {
 		parent.done(id);
 	}
-
 	/** End of DaemonInterface **/
 }

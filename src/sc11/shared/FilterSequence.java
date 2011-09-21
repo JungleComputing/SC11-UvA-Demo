@@ -9,18 +9,35 @@ public class FilterSequence implements Serializable {
 	/** Generated */
 	private static final long serialVersionUID = -7475092282914188748L;
 	
+	/** Input URI pointing to directory */
 	public final String inputDir;
+	
+	/** Input file suffix */ 
     public final String inputSuffix;
+    
+    /** Output URI pointing to directory */	
     public final String outputDir;
 
+    /** Sequence of filters to apply to each file in the input */
     public final String [] filters;
  
+    /** Site on which the filtering should be run */    
     public final String site;
 
+    /** Number of slaves to use for filtering */    
     public final int nodes;
 
-    public FilterSequence(String inputDir, String inputSuffix, String outputDir,
-            String[] filters, String site, int nodes) {
+    /** 
+     * Create custom FilterSequence.
+     * 
+     * @param inputDir input URI (directory).
+     * @param inputSuffix input file suffix. 
+     * @param outputDir output URI (directory).
+     * @param filters sequence of filters to apply.
+     * @param site target site on which the filtering should be run.
+     * @param nodes number of slaves to use for filtering.
+     */
+    public FilterSequence(String inputDir, String inputSuffix, String outputDir, String[] filters, String site, int nodes) {
         super();
         this.inputDir = inputDir;
         this.inputSuffix = inputSuffix;
@@ -30,16 +47,39 @@ public class FilterSequence implements Serializable {
         this.nodes = nodes;
     }
 
-    public FilterSequence(String inputDir, String inputSuffix, String outputDir,
-            String[] filters, String site) {
+    /** 
+     * Create a FilterSequence that uses the default number of slaves for the selected site.
+     * 
+     * @param inputDir input URI (directory).
+     * @param inputSuffix input file suffix. 
+     * @param outputDir output URI (directory).
+     * @param filters sequence of filters to apply.
+     * @param site target site on which the filtering should be run.
+     */
+    public FilterSequence(String inputDir, String inputSuffix, String outputDir, String[] filters, String site) {
         this(inputDir, inputSuffix, outputDir, filters, site, 0);
     }
 
-    public FilterSequence(String inputDir, String inputSuffix, String outputDir,
-            String[] filters) {
+    /** 
+     * Create a FilterSequence that uses the default site and default number of slaves.
+     * 
+     * @param inputDir input URI (directory).
+     * @param inputSuffix input file suffix. 
+     * @param outputDir output URI (directory).
+     * @param filters sequence of filters to apply.
+     */
+    public FilterSequence(String inputDir, String inputSuffix, String outputDir, String[] filters) {
         this(inputDir, inputSuffix, outputDir, filters, null, 0);
     }
 
+
+    /** 
+     * Create a FilterSequence that only copies the inputDir to the outputDir.
+     * 
+     * @param inputDir input URI (directory).
+     * @param inputSuffix input file suffix. 
+     * @param outputDir output URI (directory).
+     */
     public FilterSequence(String inputDir, String inputSuffix, String outputDir) {
         this(inputDir, inputSuffix, outputDir, null, null, 0);
     }
@@ -50,51 +90,5 @@ public class FilterSequence implements Serializable {
 				+ inputSuffix + ", outputDir=" + outputDir + ", filters="
 				+ Arrays.toString(filters) + ", site=" + site + ", nodes="
 				+ nodes + "]";
-	}
-    
-    public static FilterSequence fromArguments(String [] args) throws Exception { 
-    	
-        String inputURI = null;
-        String outputURI = null;
-        String inputFileType = null;
-        String site = null;
-        
-        int nodes = -1;
-        
-        ArrayList<String> filters = new ArrayList<String>();
-        
-        for (int i=0;i<args.length;i++) {
-
-            if (args[i].equals("--inputURI")) {
-                inputURI = args[++i];
-            } else if (args[i].equals("--outputURI")) {
-                outputURI = args[++i];
-            } else if (args[i].equals("--inputSuffix")) {
-                inputFileType = args[++i];
-            } else if (args[i].equals("--filter")) {
-                filters.add(args[++i]);
-            } else if (args[i].equals("--site")) {
-                site = args[++i];
-            } else if (args[i].equals("--nodes")) {
-                nodes = Integer.parseInt(args[++i]); 
-            }             
-            // NOTE: skip everything we don't know
-        }
-
-        if (inputURI == null) {
-        	throw new Exception("InputURI not set!");
-        }
-
-        if (outputURI == null) {
-            throw new Exception("OutputURI not set!");
-        }
-
-        if (inputFileType == null) {
-            throw new Exception("InputSuffix not set!");
-        }
-
-        String [] tmp = filters.toArray(new String[filters.size()]);
-        return new FilterSequence(inputURI, inputFileType, outputURI, tmp, 
-        		site, nodes);
-    }
+	}   
 }

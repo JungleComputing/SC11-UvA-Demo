@@ -9,6 +9,22 @@ import ibis.constellation.Activity;
 import ibis.constellation.Event;
 import ibis.constellation.context.UnitActivityContext;
 
+/**
+ * This activity represents 'bulk operation' responsible for processing all files with a given suffix in a given input directory.   
+ * 
+ * A BulkOperation starts with check the access of both the in and output directories. Next, the list of files in the input 
+ * directory is retrieved and a new {@link Operation} is created for each file. Each {@link Operation} is responsible for the 
+ * processing of a single input file.    
+ * 
+ * Note that the BulkOperation does not check the suffix or accessibility of each of the input files, as these may be expensive 
+ * remote operations. Performing these sequentially inside this BulkOperation would significantly reduce performance. Instead, 
+ * it is up to each {@link Operation} to perform these tasks before starting.   
+ * 
+ * Note that this BulkOperation is 'restricted to local'. As such, it can not leave the machine on which it was created. It can 
+ * freely move between cores however.   
+ * 
+ * @author jason@cs.vu.nl
+ */
 public class BulkOperation extends Activity {
 
     /** Generated */
@@ -32,8 +48,17 @@ public class BulkOperation extends Activity {
     private long time;
     private boolean done;
 
-    public BulkOperation(Master parent, long id, String in, String filetype,
-            ScriptDescription [] sd, String out) {
+    /** 
+     * Creates BulkOperation responsible for processing all files with a given suffix in a given input directory.
+     *
+     * @param parent the Master that submitted this BulkOperation.
+     * @param id a unique ID for this activity. 
+     * @param in the input URI. 
+     * @param filetype the input suffix. 
+     * @param sd an array of {@link ScriptDescription}s describing the filters to be applied.  
+     * @param out the output URI.
+     */
+    public BulkOperation(Master parent, long id, String in, String filetype, ScriptDescription [] sd, String out) {
 
         super(new UnitActivityContext("master", id), true, true);
 
