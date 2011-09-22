@@ -42,6 +42,7 @@ public class Operation extends Activity {
 
     private final String cleanFileName;
     private final String cleanExt;
+    private String lastExt;
 
     private final File outDir;
 
@@ -241,9 +242,9 @@ public class Operation extends Activity {
 
     // Copies the last tmp file to the output location.
     private Result copyOutput() {
-
         try {
             File tmp = GAT.createFile("file:///" + LocalConfig.get().tmpdir + File.separator + tmpFiles[tmpFiles.length-1]);
+            out = GAT.createFile(outDir.toGATURI() + "/" + cleanFileName + lastExt);
             return copy(tmp, out);
         } catch (Exception e) {
             LocalConfig.println(txt + " ERROR: Copy to output failed", e);
@@ -253,7 +254,6 @@ public class Operation extends Activity {
 
     // Copies the last input file to the first tmp location.
     private Result copyInput() {
-
         try {
             File tmp = GAT.createFile("file:///" + LocalConfig.getTmpDir() + File.separator + tmpFiles[0]);
             return copy(in, tmp);
@@ -286,7 +286,7 @@ public class Operation extends Activity {
                 return;
             }
 
-            String lastExt = generateTempFileNames();
+            lastExt = generateTempFileNames();
 
             if (lastExt == null) {
                 LocalConfig.println(txt + " ERROR: Failed to generate tmp files!");

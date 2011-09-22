@@ -140,6 +140,9 @@ public class Daemon {
                 File.separator + "adaptors");
 
         m.setSystemProperty("ibis.constellation.master", master);
+        m.setSystemProperty("ibis.constellation.steal.size", "10");
+        m.setSystemProperty("ibis.constellation.steal.delay", "5");
+
         m.setSystemProperty("sc11.config", config);
         m.setSystemProperty("sc11.tmpDir", tmpDir);
         m.setSystemProperty("sc11.scriptDir", scriptDir);
@@ -149,7 +152,6 @@ public class Daemon {
 
         m.setJVMOptions("-classpath", libs + "sc11-application-0.2.0.jar:" + libs + "constellation-0.7.0.jar:" +
                         libs + "javagat" + File.separator + "*:" + libs + "ipl" + File.separator + "*");
-
         return m;
     }
 
