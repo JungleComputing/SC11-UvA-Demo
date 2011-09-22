@@ -5,7 +5,7 @@
 	<property name="app-jar" value="sc11-application-${version}.jar" />
 	<property name="client-jar" value="sc11-client-${version}.jar" />
 
-	<property name="gat" value="JavaGAT-2.1.1" />
+	<property name="gat" value="JavaGAT-3209" />
 	<property name="ipl" value="ipl-13559" />
 	<property name="deploy" value="deploy-13499" />
 	<property name="constellation" value="constellation-0.7.0" />
@@ -15,7 +15,7 @@
 		<fileset dir="./external">
 			<include name="${constellation}.jar" />
 		</fileset>
-		<fileset dir="./external/${gat}/lib">
+		<fileset dir="./external/${gat}/">
 			<include name="**/*.jar" />
 		</fileset>
 		<fileset dir="./external/${ipl}">
@@ -98,7 +98,7 @@
 
         	<!-- Copy various dirs to distribution directory -->
 	        <copy todir="distribution/sc11-demo/lib/javagat">
-		        <fileset dir="external/${gat}/lib">
+		        <fileset dir="external/${gat}">
 	                  <include name="**/*"/>	
                         </fileset>
 		</copy>
