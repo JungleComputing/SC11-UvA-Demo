@@ -8,10 +8,21 @@ import ibis.constellation.StealPool;
 import ibis.constellation.StealStrategy;
 import ibis.constellation.context.UnitWorkerContext;
 
+/** 
+ * The application's Slave. 
+ * 
+ * @author jason
+ */
 public class Slave {
 
 	private final Constellation cn;
 	
+	/**
+	 * Create a slave.
+	 * 
+	 * @param executors the executor configuration to use for Constellation. 
+	 * @throws Exception if the creation of Constellation failed.  
+	 */	
 	public Slave(String [] executors) throws Exception  { 
 
 		StealPool master = new StealPool("master");
@@ -29,6 +40,8 @@ public class Slave {
 
 		cn = ConstellationFactory.createConstellation(e);
 	} 
+	
+	
 	
 	public void run() { 
 		

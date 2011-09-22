@@ -3,7 +3,6 @@ package sc11.daemon;
 import java.io.File;
 import java.util.HashMap;
 
-import sc11.processing.Master;
 import sc11.shared.FilterSequence;
 import sc11.shared.Result;
 
